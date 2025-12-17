@@ -1,0 +1,75 @@
+import axios from 'axios';
+
+class RetroAchievementsService {
+    constructor() {
+        this.client = axios.create({
+            timeout: 10000,
+        });
+        this.baseUrl = 'https://retroachievements.org/API';
+    }
+
+    /**
+     * 🏆 Получить профиль пользователя
+     */
+    async fetchUserProfile(username, apiKey) {
+        try {
+            const url = `${this.baseUrl}/API_GetUserProfile.php?u=${username}&y=${apiKey}`;
+            console.log('UserProfile request URL:', url);
+            
+            const response = await this.client.get(url);
+            console.log('UserProfile raw response:', response.data);
+            
+            if (response.data && typeof response.data === 'object') {
+                return response.data;
+            } else {
+                throw new Error(`Unexpected response: ${JSON.stringify(response.data)}`);
+            }
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 🎮 Получить детали игры
+     */
+    async fetchGameDetails(username, apiKey, gameId) {
+        try {
+            const url = `${this.baseUrl}/API_GetGame.php?i=${gameId}&u=${username}&y=${apiKey}`;
+            console.log('GameDetails request URL:', url);
+            
+            const response = await this.client.get(url);
+            console.log('GameDetails raw response:', response.data);
+            
+            if (response.data && typeof response.data === 'object') {
+                return response.data;
+            } else {
+                throw new Error(`Unexpected response: ${JSON.stringify(response.data)}`);
+            }
+        } catch (error) {
+            console.error('Error fetching game details:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 📂 Найти gameId по хэшам ROM
+     */
+    async findGameIdsByHashes(username, apiKey, hashes) {
+        try {
+            console.log('findGameIdsByHashes: hashes=', hashes);
+            // TODO: Реализовать реальный вызов API для сопоставления хэшей
+            // Временная заглушка
+            const result = {};
+            hashes.forEach(hash => {
+                result[hash] = -1;
+            });
+            return result;
+        } catch (error) {
+            console.error('Ошибка поиска игр по хэшу:', error);
+            return {};
+        }
+    }
+}
+
+export default new RetroAchievementsService();

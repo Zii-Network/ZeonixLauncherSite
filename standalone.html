@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConsoleDS - Standalone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #0d0f14;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Стили из вашего CSS перенесите сюда */
+        .top-bar {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 10;
+            padding: 8px 12px;
+            background: rgba(50,50,50,0.6);
+            border: 2px solid rgba(150,150,150,0.5);
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+        }
+        /* ... остальные стили из ConsoleMenu.css ... */
+    </style>
+</head>
+<body>
+    <!-- Ваш HTML из ConsoleMenu.jsx перенесите сюда -->
+    <div class="top-bar">
+        <div class="time">20:55</div>
+        <div class="profile">Zinex</div>
+    </div>
+    
+    <div class="game-grid">
+        <!-- Игры будут добавлены через JS -->
+    </div>
+    
+    <audio id="bg-music" loop>
+        <source src="zinex.lol_files/background-music.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Здесь весь JavaScript из вашего файла
+        const games = [
+            { id: 1, name: "Emulator", icon: "icons_Zii/SegaMegaDrive.png", url: "data/index.html" },
+            { id: 2, name: "Game 2", icon: "icons_Zii/empty.png", url: "#" },
+            { id: 3, name: "Game 3", icon: "icons_Zii/empty.png", url: "#" },
+            { id: 4, name: "Game 4", icon: "icons_Zii/empty.png", url: "#" },
+            { id: 5, name: "Game 5", icon: "icons_Zii/empty.png", url: "#" },
+        ];
+
+        let selectedIndex = 0;
+        
+        function renderGames() {
+            const grid = document.querySelector('.game-grid');
+            grid.innerHTML = '';
+            
+            games.forEach((game, index) => {
+                const gameEl = document.createElement('div');
+                gameEl.className = `game-icon ${index === selectedIndex ? 'selected' : ''}`;
+                gameEl.innerHTML = `
+                    <img src="${game.icon}" alt="${game.name}" />
+                    <div class="game-name">${game.name}</div>
+                `;
+                gameEl.onclick = () => {
+                    if (game.url && game.url !== '#') {
+                        window.location.href = game.url;
+                    }
+                };
+                grid.appendChild(gameEl);
+            });
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                selectedIndex = Math.min(selectedIndex + 1, games.length - 1);
+                renderGames();
+            } else if (e.key === 'ArrowLeft') {
+                selectedIndex = Math.max(selectedIndex - 1, 0);
+                renderGames();
+            } else if (e.key === 'Enter') {
+                const game = games[selectedIndex];
+                if (game.url && game.url !== '#') {
+                    window.location.href = game.url;
+                }
+            }
+        });
+        
+        // Обновление времени
+        function updateTime() {
+            const now = new Date();
+            document.querySelector('.time').textContent = 
+                `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        }
+        
+        setInterval(updateTime, 60000);
+        updateTime();
+        
+        renderGames();
+    </script>
+</body>
+</html>

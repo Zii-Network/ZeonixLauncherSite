@@ -1,0 +1,1289 @@
+/* Основной контейнер */
+.games-carousel-wrapper {
+  width: 100%;
+  height: calc(100vh - 180px);
+  display: flex;
+  gap: 30px;
+  padding: 20px;
+  box-sizing: border-box;
+  min-height: 500px;
+}
+
+/* Панель карусели */
+.carousel-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+}
+
+/* Заголовок панели */
+.panel-header {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.panel-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 5px;
+}
+
+.console-name {
+  color: inherit;
+  text-shadow: 0 0 10px currentColor;
+}
+
+.panel-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+/* Контейнер карусели */
+.carousel-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--bg-primary);
+  min-height: 0;
+}
+
+.carousel-container.vertical {
+  /* Для вертикального перелистывания */
+}
+
+/* Особый отступ для левой панели с консолями */
+.consoles-panel .carousel-container {
+  margin-bottom: 90px; /* Освобождаем место для элементов управления папкой */
+}
+
+/* Дорожка карусели */
+.carousel-track {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Слайд карусели */
+.carousel-slide {
+  position: absolute;
+  width: 90%;
+  max-width: 500px;
+  opacity: 0;
+  transform: translateY(100%) scale(0.8);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Вертикальное перелистывание для консолей */
+.consoles-panel .carousel-slide {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, 100%) scale(0.8);
+}
+
+.consoles-panel .carousel-slide.active {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  z-index: 10;
+}
+
+.consoles-panel .carousel-slide.prev {
+  opacity: 0.4;
+  transform: translate(-50%, -150%) scale(0.9);
+  z-index: 5;
+}
+
+.consoles-panel .carousel-slide.next {
+  opacity: 0.4;
+  transform: translate(-50%, 50%) scale(0.9);
+  z-index: 5;
+}
+
+/* Вертикальное перелистывание для игр */
+.games-panel .carousel-slide {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, 100%) scale(0.8);
+}
+
+.games-panel .carousel-slide.active {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  z-index: 10;
+}
+
+.games-panel .carousel-slide.prev {
+  opacity: 0.4;
+  transform: translate(-50%, -150%) scale(0.9);
+  z-index: 5;
+}
+
+.games-panel .carousel-slide.next {
+  opacity: 0.4;
+  transform: translate(-50%, 50%) scale(0.9);
+  z-index: 5;
+}
+
+/* Контент слайда */
+.slide-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: var(--bg-secondary);
+  border-radius: 15px;
+  transition: all 0.3s ease;
+  min-height: 140px;
+}
+
+.carousel-slide.active .slide-content {
+  background: rgba(115, 183, 255, 0.1);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Квадратная иконка БЕЗ РАМКИ */
+.square-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.carousel-slide.active .square-icon {
+  transform: scale(1.1);
+  background: rgba(115, 183, 255, 0.2);
+}
+
+/* Информация слайда */
+.slide-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.slide-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.slide-count,
+.slide-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.slide-count i,
+.slide-time i {
+  font-size: 13px;
+}
+
+/* Информация об игре */
+.game-details {
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.4s ease;
+}
+
+.carousel-slide.active .game-details {
+  opacity: 1;
+  max-height: 200px;
+}
+
+.game-platform {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.game-platform i {
+  font-size: 14px;
+}
+
+.game-description {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Индикатор (точки) */
+.carousel-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.consoles-panel .carousel-indicator {
+  margin-bottom: 20px; /* Отступ от элементов управления */
+}
+
+.indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.indicator-dot.active {
+  background: var(--accent);
+  transform: scale(1.3);
+}
+
+.indicator-dot:hover {
+  background: var(--accent);
+  transform: scale(1.2);
+}
+
+/* ===== НОВЫЕ СТИЛИ ДЛЯ ВЫБОРА ПАПКИ ===== */
+
+/* Экран выбора папки */
+.folder-selector-screen {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+.folder-selector-content {
+  max-width: 800px;
+  width: 100%;
+  text-align: center;
+  background: var(--bg-secondary);
+  border-radius: 20px;
+  padding: 40px;
+  border: 2px solid var(--border);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.folder-icon {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, var(--accent), #4a90e2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 30px;
+  color: white;
+  font-size: 60px;
+}
+
+.selector-title {
+  font-size: 32px;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.selector-description {
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 40px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.select-folder-btn {
+  background: linear-gradient(135deg, var(--accent), #5aa0ff);
+  color: white;
+  border: none;
+  padding: 18px 40px;
+  border-radius: 50px;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 15px;
+  transition: all 0.3s ease;
+  margin-bottom: 50px;
+}
+
+.select-folder-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(115, 183, 255, 0.4);
+  background: linear-gradient(135deg, #5aa0ff, var(--accent));
+}
+
+.select-folder-btn:active {
+  transform: translateY(-1px);
+}
+
+.supported-info {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 15px;
+  padding: 25px;
+  text-align: left;
+}
+
+.supported-info h3 {
+  color: var(--text-primary);
+  margin-bottom: 25px;
+  font-size: 22px;
+  text-align: center;
+}
+
+.formats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.format-category {
+  background: rgba(115, 183, 255, 0.1);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(115, 183, 255, 0.2);
+}
+
+.format-category h4 {
+  color: var(--accent);
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.format-list {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: monospace;
+  line-height: 1.6;
+}
+
+/* Статистика консоли */
+.console-stats {
+  margin-top: 8px;
+}
+
+.stat-item {
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.1);
+  padding: 3px 8px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-item i {
+  font-size: 9px;
+}
+
+/* Кнопка сброса библиотеки (скрыта) */
+.reset-library-btn {
+  display: none !important;
+}
+
+/* Количество игр в заголовке */
+.games-count {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-left: 10px;
+  font-weight: normal;
+}
+
+/* Сообщение "нет игр" */
+.no-games-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  padding: 30px;
+  width: 90%;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(115, 183, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  color: var(--accent);
+  font-size: 40px;
+}
+
+.no-games-message h3 {
+  font-size: 24px;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.no-games-message p {
+  color: var(--text-secondary);
+  margin-bottom: 25px;
+  line-height: 1.5;
+}
+
+/* Мета информация об игре */
+.game-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.game-file,
+.game-size,
+.game-date {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-secondary);
+}
+
+.game-file i,
+.game-size i,
+.game-date i {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+/* Индикатор загрузки */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.loading-subtext {
+  font-size: 14px;
+  font-weight: normal;
+  opacity: 0.8;
+  margin-top: 5px;
+}
+
+/* Liquid Glass эффект */
+.liquid-glass .carousel-container {
+  background: rgba(30, 30, 40, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.liquid-glass .slide-content {
+  background: rgba(30, 30, 40, 0.2);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.liquid-glass .carousel-slide.active .slide-content {
+  background: rgba(115, 183, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.liquid-glass .square-icon {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(5px);
+}
+
+/* Liquid Glass для новых элементов */
+.liquid-glass .folder-selector-content {
+  background: rgba(30, 30, 40, 0.2);
+  backdrop-filter: blur(15px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.liquid-glass .folder-icon {
+  background: rgba(115, 183, 255, 0.3);
+  backdrop-filter: blur(5px);
+}
+
+.liquid-glass .select-folder-btn {
+  background: rgba(115, 183, 255, 0.3);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.liquid-glass .format-category {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.liquid-glass .empty-icon {
+  background: rgba(115, 183, 255, 0.2);
+  backdrop-filter: blur(5px);
+}
+
+/* Отключаем скролл */
+.carousel-container,
+.carousel-track,
+.games-carousel-wrapper {
+  overflow: hidden !important;
+}
+
+.carousel-container::-webkit-scrollbar,
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Анимации для плавности */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ===== Управление папкой ВНИЗУ левой панели ===== */
+.folder-controls-bottom {
+  margin-top: 0;
+  padding: 20px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  height: auto;
+}
+
+.folder-path-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  height: 40px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.folder-path-bottom i {
+  font-size: 13px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.path-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.folder-buttons-bottom {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.folder-btn {
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.reload-btn {
+  background: linear-gradient(135deg, rgba(115, 183, 255, 0.2), rgba(115, 183, 255, 0.3));
+  color: var(--accent);
+  border: 1px solid rgba(115, 183, 255, 0.3);
+}
+
+.reload-btn:hover {
+  background: linear-gradient(135deg, var(--accent), #5aa0ff);
+  color: white;
+  transform: rotate(90deg);
+  box-shadow: 0 6px 20px rgba(115, 183, 255, 0.4);
+}
+
+.change-btn {
+  background: linear-gradient(135deg, rgba(255, 107, 61, 0.2), rgba(255, 107, 61, 0.3));
+  color: #ff6b3d;
+  border: 1px solid rgba(255, 107, 61, 0.3);
+}
+
+.change-btn:hover {
+  background: linear-gradient(135deg, #ff6b3d, #ff8e6d);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(255, 107, 61, 0.4);
+}
+
+/* Liquid Glass для элементов управления папкой */
+.liquid-glass .folder-path-bottom {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.liquid-glass .folder-btn {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.liquid-glass .reload-btn {
+  background: linear-gradient(135deg, rgba(115, 183, 255, 0.25), rgba(115, 183, 255, 0.35));
+}
+
+.liquid-glass .change-btn {
+  background: linear-gradient(135deg, rgba(255, 107, 61, 0.25), rgba(255, 107, 61, 0.35));
+}
+
+.liquid-glass .reload-btn:hover {
+  background: linear-gradient(135deg, var(--accent), #5aa0ff);
+}
+
+.liquid-glass .change-btn:hover {
+  background: linear-gradient(135deg, #ff6b3d, #ff8e6d);
+}
+
+/* ===== Адаптивность ===== */
+@media (max-width: 1200px) {
+  .games-carousel-wrapper {
+    gap: 20px;
+    padding: 15px;
+  }
+  
+  .consoles-panel .carousel-container {
+    margin-bottom: 80px;
+  }
+  
+  .square-icon {
+    width: 70px;
+    height: 70px;
+    font-size: 32px;
+  }
+  
+  .slide-title {
+    font-size: 18px;
+  }
+  
+  .folder-controls-bottom {
+    gap: 12px;
+  }
+  
+  .folder-btn {
+    width: 42px;
+    height: 42px;
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 768px) {
+  .games-carousel-wrapper {
+    flex-direction: column;
+    height: auto;
+    min-height: auto;
+  }
+  
+  .carousel-panel {
+    height: 350px;
+    margin-bottom: 20px;
+  }
+  
+  .consoles-panel .carousel-container {
+    margin-bottom: 70px;
+  }
+  
+  .carousel-slide {
+    width: 95%;
+  }
+  
+  .slide-content {
+    padding: 15px;
+    gap: 15px;
+  }
+  
+  .square-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+  }
+  
+  .slide-title {
+    font-size: 16px;
+  }
+  
+  .slide-count,
+  .slide-time {
+    font-size: 13px;
+  }
+  
+  .game-description {
+    font-size: 12px;
+  }
+  
+  /* Адаптивность для экрана выбора папки */
+  .folder-selector-screen {
+    padding: 20px;
+  }
+  
+  .folder-selector-content {
+    padding: 25px;
+  }
+  
+  .folder-icon {
+    width: 80px;
+    height: 80px;
+    font-size: 40px;
+  }
+  
+  .selector-title {
+    font-size: 24px;
+  }
+  
+  .selector-description {
+    font-size: 14px;
+  }
+  
+  .select-folder-btn {
+    padding: 15px 30px;
+    font-size: 16px;
+  }
+  
+  .formats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .format-category {
+    padding: 15px;
+  }
+  
+  .game-meta {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .no-games-message h3 {
+    font-size: 20px;
+  }
+  
+  /* Адаптивность для управления папкой */
+  .folder-controls-bottom {
+    padding: 10px 8px;
+    gap: 12px;
+  }
+  
+  .folder-path-bottom {
+    font-size: 11px;
+    padding: 8px 12px;
+    height: 36px;
+  }
+  
+  .folder-btn {
+    width: 38px;
+    height: 38px;
+    font-size: 15px;
+  }
+  
+  .folder-buttons-bottom {
+    gap: 12px;
+  }
+}
+
+@media (max-height: 700px) {
+  .games-carousel-wrapper {
+    height: calc(100vh - 160px);
+  }
+  
+  .consoles-panel .carousel-container {
+    margin-bottom: 70px;
+  }
+  
+  .folder-controls-bottom {
+    gap: 10px;
+  }
+  
+  .folder-path-bottom {
+    padding: 6px 10px;
+  }
+  
+  .folder-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 480px) {
+  .games-carousel-wrapper {
+    padding: 10px;
+    gap: 15px;
+  }
+  
+  .carousel-panel {
+    height: 300px;
+  }
+  
+  .consoles-panel .carousel-container {
+    margin-bottom: 65px;
+  }
+  
+  .panel-header {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+  }
+  
+  .panel-title {
+    font-size: 18px;
+  }
+  
+  .panel-subtitle {
+    font-size: 11px;
+  }
+  
+  .folder-controls-bottom {
+    gap: 8px;
+  }
+  
+  .folder-path-bottom {
+    font-size: 10px;
+    padding: 5px 8px;
+    height: 32px;
+  }
+  
+  .folder-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+  }
+  
+  .folder-buttons-bottom {
+    gap: 10px;
+  }
+  
+  /* Уменьшаем отступ для индикаторов */
+  .consoles-panel .carousel-indicator {
+    margin-bottom: 15px;
+  }
+}
+
+/* Фикс для коротких контейнеров */
+.games-carousel-wrapper:has(.consoles-panel) {
+  min-height: 600px;
+}
+
+/* Гарантируем что элементы управления всегда видны */
+.folder-controls-bottom {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ===== Управление папкой В ЛЕВОМ НИЖНЕМ УГЛУ ===== */
+.folder-controls-left {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 100;
+}
+
+.folder-buttons-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.folder-controls-left .folder-btn {
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.folder-controls-left .reload-btn {
+  background: linear-gradient(135deg, rgba(115, 183, 255, 0.2), rgba(115, 183, 255, 0.3));
+  color: var(--accent);
+  border: 1px solid rgba(115, 183, 255, 0.3);
+}
+
+.folder-controls-left .reload-btn:hover {
+  background: linear-gradient(135deg, var(--accent), #5aa0ff);
+  color: white;
+  transform: rotate(90deg);
+  box-shadow: 0 6px 20px rgba(115, 183, 255, 0.4);
+}
+
+.folder-controls-left .change-btn {
+  background: linear-gradient(135deg, rgba(255, 107, 61, 0.2), rgba(255, 107, 61, 0.3));
+  color: #ff6b3d;
+  border: 1px solid rgba(255, 107, 61, 0.3);
+}
+
+.folder-controls-left .change-btn:hover {
+  background: linear-gradient(135deg, #ff6b3d, #ff8e6d);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(255, 107, 61, 0.4);
+}
+
+/* Liquid Glass для элементов управления папкой */
+.liquid-glass .folder-controls-left .folder-btn {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.liquid-glass .folder-controls-left .reload-btn {
+  background: linear-gradient(135deg, rgba(115, 183, 255, 0.25), rgba(115, 183, 255, 0.35));
+}
+
+.liquid-glass .folder-controls-left .change-btn {
+  background: linear-gradient(135deg, rgba(255, 107, 61, 0.25), rgba(255, 107, 61, 0.35));
+}
+
+.liquid-glass .folder-controls-left .reload-btn:hover {
+  background: linear-gradient(135deg, var(--accent), #5aa0ff);
+}
+
+.liquid-glass .folder-controls-left .change-btn:hover {
+  background: linear-gradient(135deg, #ff6b3d, #ff8e6d);
+}
+
+/* Адаптивность */
+@media (max-width: 1200px) {
+  .folder-controls-left {
+    bottom: 15px;
+    left: 15px;
+  }
+  
+  .folder-controls-left .folder-btn {
+    width: 42px;
+    height: 42px;
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 768px) {
+  .folder-controls-left {
+    bottom: 10px;
+    left: 10px;
+  }
+  
+  .folder-controls-left .folder-btn {
+    width: 38px;
+    height: 38px;
+    font-size: 15px;
+  }
+  
+  .folder-buttons-left {
+    gap: 10px;
+  }
+}
+
+@media (max-height: 700px) {
+  .folder-controls-left {
+    bottom: 10px;
+    left: 10px;
+  }
+  
+  .folder-controls-left .folder-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .folder-controls-left {
+    bottom: 8px;
+    left: 8px;
+  }
+  
+  .folder-controls-left .folder-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+  }
+  
+  .folder-buttons-left {
+    gap: 8px;
+  }
+}
+
+/* Стили для эмулятора */
+.emulator-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(10px);
+}
+
+.emulator-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: rgba(30, 30, 40, 0.9);
+  border-bottom: 1px solid rgba(115, 183, 255, 0.3);
+  color: white;
+}
+
+.emulator-title {
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.close-emulator-btn {
+  background: rgba(255, 107, 61, 0.2);
+  color: #ff6b3d;
+  border: 1px solid rgba(255, 107, 61, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.close-emulator-btn:hover {
+  background: rgba(255, 107, 61, 0.4);
+  transform: scale(1.05);
+}
+
+.emulator-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.emulator-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: black;
+}
+
+.emulator-controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(30, 30, 40, 0.9);
+  border-top: 1px solid rgba(115, 183, 255, 0.3);
+}
+
+.emulator-controls button {
+  background: rgba(115, 183, 255, 0.2);
+  color: var(--accent);
+  border: 1px solid rgba(115, 183, 255, 0.3);
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.emulator-controls button:hover {
+  background: rgba(115, 183, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Мобильные контроллеры */
+.mobile-controls {
+  display: none;
+  position: absolute;
+  bottom: 80px;
+  width: 100%;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.d-pad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.d-horizontal {
+  display: flex;
+  gap: 5px;
+}
+
+.d-pad button {
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  color: white;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.action-buttons button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-weight: bold;
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 768px) {
+  .mobile-controls {
+    display: flex;
+  }
+  
+  .emulator-iframe {
+    height: calc(100% - 60px);
+  }
+}
+
+/* Анимация появления эмулятора */
+@keyframes emulatorFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.emulator-overlay {
+  animation: emulatorFadeIn 0.3s ease-out;
+}

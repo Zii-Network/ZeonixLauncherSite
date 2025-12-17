@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/zii_site/static/css/main.5e7da901.css",
+    "main.js": "/zii_site/static/js/main.2eca7fa2.js",
+    "index.html": "/zii_site/index.html",
+    "main.5e7da901.css.map": "/zii_site/static/css/main.5e7da901.css.map",
+    "main.2eca7fa2.js.map": "/zii_site/static/js/main.2eca7fa2.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.5e7da901.css",
+    "static/js/main.2eca7fa2.js"
+  ]
+}

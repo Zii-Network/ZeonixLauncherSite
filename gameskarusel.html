@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Игровые консоли</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0d0f14;
+      color: white;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+    }
+
+    /* Левая часть - консоли */
+    .consoles-section {
+      width: 300px;
+      background: #1a1d24;
+      border-right: 1px solid #2a2d35;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .consoles-header {
+      padding: 20px 0;
+      border-bottom: 1px solid #2a2d35;
+      margin-bottom: 20px;
+    }
+
+    .consoles-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #ff6b3d;
+      margin-bottom: 5px;
+    }
+
+    .consoles-subtitle {
+      font-size: 12px;
+      color: #8a8f9d;
+    }
+
+    /* Карусель консолей (кубы) */
+    .consoles-carousel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      overflow-y: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding: 10px 0;
+    }
+
+    .consoles-carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Правая часть - игры */
+    .games-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      opacity: 0;
+      transform: translateX(100px);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: none;
+    }
+
+    .games-section.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: all;
+    }
+
+    /* Кубы консолей */
+    .console-cube {
+      width: 160px;
+      height: 160px;
+      background: #1a1d24;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 2px solid transparent;
+      flex-shrink: 0;
+      opacity: 0.5;
+    }
+
+    .console-cube:hover {
+      background: #252830;
+      opacity: 0.8;
+    }
+
+    .console-cube.active {
+      background: #252830;
+      border-color: #ff6b3d;
+      opacity: 1;
+      transform: scale(1.05);
+    }
+
+    .console-icon {
+      width: 60px;
+      height: 60px;
+      background: #252830;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ff6b3d;
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+
+    .console-name {
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      padding: 0 10px;
+    }
+
+    /* Карусель игр */
+    .games-carousel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 25px;
+      height: 100%;
+      width: 100%;
+      max-width: 500px;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding: 40px 0;
+    }
+
+    .games-carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Кубы игр */
+    .game-cube {
+      width: 180px;
+      height: 180px;
+      background: #1a1d24;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      scroll-snap-align: center;
+      transition: all 0.3s;
+      cursor: pointer;
+      border: 2px solid transparent;
+      flex-shrink: 0;
+      opacity: 0.5;
+      position: relative;
+    }
+
+    .game-cube:hover {
+      background: #252830;
+      opacity: 0.8;
+    }
+
+    .game-cube.active {
+      background: #252830;
+      border-color: #ff6b3d;
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    .game-icon {
+      width: 70px;
+      height: 70px;
+      background: #252830;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ff6b3d;
+      font-size: 28px;
+      margin-bottom: 15px;
+    }
+
+    .game-name {
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      padding: 0 15px;
+      margin-bottom: 5px;
+    }
+
+    .game-time {
+      font-size: 12px;
+      color: #8a8f9d;
+    }
+
+    /* Информация об игре */
+    .game-info {
+      position: absolute;
+      left: 200px;
+      width: 250px;
+      opacity: 0;
+      transform: translateX(-20px);
+      transition: all 0.3s ease 0.1s;
+      pointer-events: none;
+    }
+
+    .game-cube.active .game-info {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .game-info-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #ff6b3d;
+      margin-bottom: 5px;
+    }
+
+    .game-info-time {
+      font-size: 16px;
+      color: #8a8f9d;
+    }
+
+    /* Выбранная консоль сверху */
+    .selected-console {
+      position: absolute;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(26, 29, 36, 0.9);
+      border: 2px solid #ff6b3d;
+      border-radius: 10px;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 10;
+    }
+
+    .selected-console:hover {
+      background: rgba(37, 40, 48, 0.9);
+      transform: translateX(-50%) scale(1.05);
+    }
+
+    .selected-console-icon {
+      width: 30px;
+      height: 30px;
+      background: #252830;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ff6b3d;
+      font-size: 16px;
+    }
+
+    .selected-console-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #ff6b3d;
+    }
+
+    /* Хинты */
+    .hint {
+      color: #666;
+      font-size: 12px;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    /* Анимация пульсации */
+    .console-cube.active::after,
+    .game-cube.active::after {
+      content: '';
+      position: absolute;
+      top: -5px;
+      left: -5px;
+      right: -5px;
+      bottom: -5px;
+      border: 2px solid rgba(255, 107, 61, 0.3);
+      border-radius: 15px;
+      z-index: -1;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.3; }
+      50% { opacity: 0.7; }
+      100% { opacity: 0.3; }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <!-- Левая часть - консоли -->
+  <div class="consoles-section">
+    <div class="consoles-header">
+      <div class="consoles-title">Игровые консоли</div>
+      <div class="consoles-subtitle">Выберите консоль</div>
+    </div>
+
+    <div class="consoles-carousel" id="consolesCarousel">
+      <!-- Консоли будут добавлены через JS -->
+    </div>
+    
+    <div class="hint">Кликните на консоль</div>
+  </div>
+
+  <!-- Правая часть - игры -->
+  <div class="games-section" id="gamesSection">
+    <!-- Выбранная консоль сверху -->
+    <div class="selected-console" id="selectedConsole">
+      <div class="selected-console-icon" id="selectedConsoleIcon">
+        <i class="fas fa-gamepad"></i>
+      </div>
+      <div class="selected-console-name" id="selectedConsoleName">Game Boy Advance</div>
+    </div>
+
+    <!-- Карусель игр -->
+    <div class="games-carousel" id="gamesCarousel">
+      <!-- Игры будут добавлены через JS -->
+    </div>
+    
+    <div class="hint">Прокрутите или кликните для выбора игры</div>
+  </div>
+
+  <script>
+    // Данные
+    const consolesData = [
+      {
+        id: "gba",
+        name: "Game Boy Advance",
+        icon: "fas fa-gamepad",
+        games: [
+          {
+            id: "gba1",
+            name: "Pokémon Emerald",
+            icon: "fas fa-dragon",
+            playtime: "2 часа 15 минут",
+            lastPlayed: "Вчера, 14:30"
+          },
+          {
+            id: "gba2",
+            name: "Metroid Fusion",
+            icon: "fas fa-rocket",
+            playtime: "1 час 45 минут",
+            lastPlayed: "Сегодня, 10:15"
+          },
+          {
+            id: "gba3",
+            name: "Advance Wars",
+            icon: "fas fa-chess-board",
+            playtime: "3 часа 20 минут",
+            lastPlayed: "2 дня назад"
+          }
+        ]
+      },
+      {
+        id: "psp",
+        name: "PlayStation Portable",
+        icon: "fas fa-gamepad",
+        games: [
+          {
+            id: "psp1",
+            name: "God of War: Chains of Olympus",
+            icon: "fas fa-fist-raised",
+            playtime: "4 часа 10 минут",
+            lastPlayed: "Неделю назад"
+          },
+          {
+            id: "psp2",
+            name: "Patapon",
+            icon: "fas fa-drum",
+            playtime: "5 часов",
+            lastPlayed: "Вчера, 18:45"
+          }
+        ]
+      },
+      {
+        id: "ngpc",
+        name: "Neo Geo Pocket Color",
+        icon: "fas fa-gamepad",
+        games: [
+          {
+            id: "ngpc1",
+            name: "SNK vs Capcom",
+            icon: "fas fa-user-ninja",
+            playtime: "45 минут",
+            lastPlayed: "Месяц назад"
+          },
+          {
+            id: "ngpc2",
+            name: "Metal Slug 2nd Mission",
+            icon: "fas fa-gun",
+            playtime: "1 час 30 минут",
+            lastPlayed: "2 недели назад"
+          },
+          {
+            id: "ngpc3",
+            name: "Sonic Pocket Adventure",
+            icon: "fas fa-running",
+            playtime: "2 часа",
+            lastPlayed: "3 дня назад"
+          }
+        ]
+      }
+    ];
+
+    // Состояния
+    let selectedConsoleIndex = 0;
+    let selectedGameIndex = 0;
+    let isGamesVisible = false;
+    let isManualConsoleSelection = false; // Флаг для ручного выбора консоли
+    let isManualGameSelection = false; // Флаг для ручного выбора игры
+
+    // DOM элементы
+    const consolesCarousel = document.getElementById('consolesCarousel');
+    const gamesSection = document.getElementById('gamesSection');
+    const selectedConsole = document.getElementById('selectedConsole');
+    const selectedConsoleIcon = document.getElementById('selectedConsoleIcon');
+    const selectedConsoleName = document.getElementById('selectedConsoleName');
+    const gamesCarousel = document.getElementById('gamesCarousel');
+
+    // Инициализация
+    function init() {
+      renderConsoles();
+      setupEventListeners();
+      
+      // Начать с первой консоли
+      selectConsole(0);
+    }
+
+    // Рендер консолей (кубы)
+    function renderConsoles() {
+      consolesCarousel.innerHTML = '';
+      
+      consolesData.forEach((console, index) => {
+        const cube = document.createElement('div');
+        cube.className = 'console-cube';
+        cube.dataset.index = index;
+        
+        cube.innerHTML = `
+          <div class="console-icon">
+            <i class="${console.icon}"></i>
+          </div>
+          <div class="console-name">${console.name}</div>
+        `;
+        
+        // Клик на консоль
+        cube.addEventListener('click', () => {
+          selectConsole(index);
+        });
+        
+        consolesCarousel.appendChild(cube);
+      });
+      
+      // Выделить первую консоль
+      highlightConsole(0);
+    }
+
+    // Выделить консоль
+    function highlightConsole(index) {
+      document.querySelectorAll('.console-cube').forEach((cube, i) => {
+        cube.classList.toggle('active', i === index);
+      });
+    }
+
+    // Выбор консоли
+    function selectConsole(index) {
+      selectedConsoleIndex = index;
+      isManualConsoleSelection = true; // Устанавливаем флаг ручного выбора
+  
+      // Обновить выделение
+      highlightConsole(index);
+  
+      // Показать игры
+      showGames();
+  
+      // Сбрасываем флаг через небольшой таймаут
+      setTimeout(() => {
+        isManualConsoleSelection = false;
+      }, 300);
+    }
+
+    // Показать игры
+    function showGames() {
+      const console = consolesData[selectedConsoleIndex];
+      
+      // Обновить выбранную консоль сверху
+      selectedConsoleIcon.innerHTML = `<i class="${console.icon}"></i>`;
+      selectedConsoleName.textContent = console.name;
+      
+      // Показать секцию игр
+      if (!isGamesVisible) {
+        gamesSection.classList.add('active');
+        isGamesVisible = true;
+      }
+      
+      // Загрузить игры
+      loadGames();
+      
+      // Прокрутить к активной консоли
+      scrollToActiveConsole();
+    }
+
+    // Прокрутить к активной консоли
+    function scrollToActiveConsole() {
+      const activeCube = document.querySelector('.console-cube.active');
+      if (activeCube && consolesCarousel) {
+        const cubeTop = activeCube.offsetTop;
+        const containerHeight = consolesCarousel.clientHeight;
+        const scrollTop = cubeTop - (containerHeight / 2) + (activeCube.clientHeight / 2);
+        
+        consolesCarousel.scrollTo({
+          top: scrollTop,
+          behavior: 'smooth'
+        });
+      }
+    }
+
+    // Вернуться к консолям
+    function returnToConsoleSelection() {
+      // Просто выделяем активную консоль
+      highlightConsole(selectedConsoleIndex);
+      scrollToActiveConsole();
+    }
+
+    // Загрузить игры
+    function loadGames() {
+      const console = consolesData[selectedConsoleIndex];
+      gamesCarousel.innerHTML = '';
+      selectedGameIndex = 0;
+      
+      console.games.forEach((game, index) => {
+        const cube = document.createElement('div');
+        cube.className = 'game-cube';
+        cube.dataset.index = index;
+        
+        cube.innerHTML = `
+          <div class="game-icon">
+            <i class="${game.icon}"></i>
+          </div>
+          <div class="game-name">${game.name}</div>
+          <div class="game-time">${game.playtime}</div>
+          <div class="game-info">
+            <div class="game-info-title">${game.name}</div>
+            <div class="game-info-time">${game.playtime}</div>
+          </div>
+        `;
+        
+        // Клик на игру
+        cube.addEventListener('click', () => {
+          selectGame(index);
+        });
+        
+        gamesCarousel.appendChild(cube);
+      });
+      
+      // Выделить первую игру
+      highlightGame(0);
+      
+      // Прокрутить к первой игре
+      setTimeout(() => {
+        scrollToActiveGame();
+      }, 100);
+    }
+
+    // Выделить игру
+    function highlightGame(index) {
+      document.querySelectorAll('.game-cube').forEach((cube, i) => {
+        cube.classList.toggle('active', i === index);
+      });
+      selectedGameIndex = index;
+    }
+
+    // Выбор игры
+    function selectGame(index) {
+    isManualGameSelection = true; // Устанавливаем флаг ручного выбора
+    highlightGame(index);
+    scrollToActiveGame();
+  
+    // Сбрасываем флаг через небольшой таймаут
+    setTimeout(() => {
+      isManualGameSelection = false;
+    }, 300);
+    }
+
+    // Прокрутить к активной игре
+    function scrollToActiveGame() {
+      const activeCube = document.querySelector('.game-cube.active');
+      if (activeCube && gamesCarousel) {
+        const cubeTop = activeCube.offsetTop;
+        const containerHeight = gamesCarousel.clientHeight;
+        const scrollTop = cubeTop - (containerHeight / 2) + (activeCube.clientHeight / 2);
+        
+        gamesCarousel.scrollTo({
+          top: scrollTop,
+          behavior: 'smooth'
+        });
+      }
+    }
+
+// Настройка обработчиков событий
+function setupEventListeners() {
+  // Возврат к консолям при клике на выбранную консоль сверху
+  selectedConsole.addEventListener('click', returnToConsoleSelection);
+  
+  // Колесико мыши для консолей - УБИРАЕМ автоматический выбор при скролле
+  consolesCarousel.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    consolesCarousel.scrollTop += e.deltaY;
+  }, { passive: false });
+  
+  // Колесико мыши для игр - УБИРАЕМ автоматический выбор при скролле
+  gamesCarousel.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    gamesCarousel.scrollTop += e.deltaY;
+  }, { passive: false });
+  
+  // Drag для консолей - оставляем выбор при завершении drag
+  setupDragScroll(consolesCarousel, findNearestConsole);
+  
+  // Drag для игр - оставляем выбор при завершении drag
+  setupDragScroll(gamesCarousel, findNearestGame);
+  
+  // Добавляем возможность выбора с клавиатуры
+  document.addEventListener('keydown', (e) => {
+    // Стрелки вверх/вниз для навигации по играм
+    if (document.querySelector('.game-cube.active')) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const games = consolesData[selectedConsoleIndex].games;
+        const nextIndex = (selectedGameIndex + 1) % games.length;
+        selectGame(nextIndex);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const games = consolesData[selectedConsoleIndex].games;
+        const prevIndex = (selectedGameIndex - 1 + games.length) % games.length;
+        selectGame(prevIndex);
+      }
+    }
+    
+    // Стрелки влево/вправо для навигации по консолям
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      const nextIndex = (selectedConsoleIndex + 1) % consolesData.length;
+      selectConsole(nextIndex);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const prevIndex = (selectedConsoleIndex - 1 + consolesData.length) % consolesData.length;
+      selectConsole(prevIndex);
+    }
+  });
+}
+
+    // Найти ближайшую консоль
+function findNearestConsole() {
+  // Если был ручной выбор, не ищем ближайшую
+  if (isManualConsoleSelection) return;
+  
+  const cubes = document.querySelectorAll('.console-cube');
+  if (cubes.length === 0) return;
+  
+  const containerRect = consolesCarousel.getBoundingClientRect();
+  const containerCenter = containerRect.top + containerRect.height / 2;
+  
+  let closestIndex = 0;
+  let closestDistance = Infinity;
+  
+  cubes.forEach((cube, index) => {
+    const cubeRect = cube.getBoundingClientRect();
+    const cubeCenter = cubeRect.top + cubeRect.height / 2;
+    const distance = Math.abs(cubeCenter - containerCenter);
+    
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndex = index;
+    }
+  });
+  
+  if (closestIndex !== selectedConsoleIndex) {
+    selectConsole(closestIndex);
+  }
+}
+
+// Найти ближайшую игру
+function findNearestGame() {
+  // Если был ручной выбор, не ищем ближайшую
+  if (isManualGameSelection) return;
+  
+  const cubes = document.querySelectorAll('.game-cube');
+  if (cubes.length === 0) return;
+  
+  const containerRect = gamesCarousel.getBoundingClientRect();
+  const containerCenter = containerRect.top + containerRect.height / 2;
+  
+  let closestIndex = 0;
+  let closestDistance = Infinity;
+  
+  cubes.forEach((cube, index) => {
+    const cubeRect = cube.getBoundingClientRect();
+    const cubeCenter = cubeRect.top + cubeRect.height / 2;
+    const distance = Math.abs(cubeCenter - containerCenter);
+    
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndex = index;
+    }
+  });
+  
+  if (closestIndex !== selectedGameIndex) {
+    selectGame(closestIndex);
+  }
+}
+
+    // Настройка drag-скролла
+    function setupDragScroll(container, onDragEnd) {
+      let isDragging = false;
+      let startY = 0;
+      let scrollTop = 0;
+      
+      container.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startY = e.clientY;
+        scrollTop = container.scrollTop;
+        container.style.cursor = 'grabbing';
+      });
+      
+      document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        
+        const y = e.clientY;
+        const walk = (y - startY);
+        container.scrollTop = scrollTop - walk;
+      });
+      
+      document.addEventListener('mouseup', () => {
+        if (isDragging) {
+          isDragging = false;
+          container.style.cursor = 'pointer';
+          
+          setTimeout(onDragEnd, 100);
+        }
+      });
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

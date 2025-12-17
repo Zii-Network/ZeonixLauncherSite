@@ -1,0 +1,1813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ConsoleDS Menu</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      font-family: sans-serif;
+      color: white;
+      overflow: hidden;
+    }
+
+    /* Верхняя панель ну что бы не забыть */
+    .top-bar {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      z-index: 10;
+    }
+    .top-left { 
+      display: flex; 
+      gap: 10px; 
+      align-items: center;
+      padding: 6px 12px;
+      background: rgba(50, 50, 50, 0.6);
+      border: 2px solid rgba(150, 150, 150, 0.5);
+      border-radius: 20px;
+      backdrop-filter: blur(5px);
+    }
+    .top-right { 
+      display: flex; 
+      gap: 15px; 
+      align-items: center;
+      padding: 6px 12px;
+      background: rgba(50, 50, 50, 0.6);
+      border: 2px solid rgba(150, 150, 150, 0.5);
+      border-radius: 20px;
+      backdrop-filter: blur(5px);
+    }
+
+    /* Название выбранного приложения ну что бы не забыть */
+    .app-title {
+      position: fixed;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      text-shadow: 0 0 10px #73b7ff;
+      z-index: 9;
+    }
+
+    /* Друзья бл слева на */
+    .friends {
+      position: fixed;
+      top: 100px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      z-index: 9;
+    }
+
+/* Нижняя панель */
+.bottom-wrapper {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  padding: 10px 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgba(255,255,255,0.2);
+  z-index: 20;
+}
+
+.bottom-bar {
+  display: flex;
+  gap: 25px;
+}
+
+.bottom-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
+  background: transparent; /* кнопки прозрачные внутри рамки */
+  position: relative;
+}
+
+.bottom-icon img {
+  width: 70%;
+  height: 70%;
+  pointer-events: none; /* клики идут на div, а не на картинку */
+}
+
+.bottom-icon:hover {
+  transform: scale(1.1);
+}
+
+.bottom-icon.active::after {
+  content: "";
+  position: absolute;
+  top: -6px; left: -6px; right: -6px; bottom: -6px;
+  border-radius: 12px; /* квадрат с закруглёнными углами */
+  box-shadow: 0 0 20px rgba(115,183,255,0.8),
+              0 0 40px rgba(80,100,255,0.6),
+              0 0 60px rgba(150,80,255,0.4);
+  z-index: -1;
+
+  /* пульсация */
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%   { opacity: 0.6; transform: scale(0.95); }
+  50%  { opacity: 1;   transform: scale(1.05); }
+  100% { opacity: 0.6; transform: scale(0.95); }
+}
+
+
+/* Контейнер для страниц */
+.pages-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 200px);
+  overflow: hidden;
+  padding: 140px 60px 200px;
+  box-sizing: border-box;
+}
+
+/* Сетка игр (страница) */
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 120px); /* 12 колонок по 120px */
+  grid-template-rows: repeat(3, 120px);    /* 3 ряда по 120px */
+  gap: 25px;
+  justify-items: center;
+  align-items: center;
+  position: absolute;
+  top: 180px;
+  left: 75px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.game-grid.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.game-grid.prev {
+  opacity: 0;
+}
+
+.game-icon {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  border-radius: 15px;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: visible; /* важно для видимости обводки */
+}
+
+.game-icon:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(115,183,255,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.game-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 15px;
+}
+
+.game-icon.selected::before {
+  content: "";
+  position: absolute;
+  top: -8px; left: -8px; right: -8px; bottom: -8px;
+  border-radius: 25px;
+  background: linear-gradient(45deg, #ff00cc, #73b7ff, #00ffcc);
+  animation: pulse 2s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.game-icon.selected::after {
+  content: "";
+  position: absolute;
+  top: -1px; left: -1px; right: -1px; bottom: -1px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  z-index: 1;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  pointer-events: none;
+}
+
+.game-icon.selected img {
+  position: relative;
+  z-index: 2;
+}
+
+/* Индикатор страниц */
+.page-indicator {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 15;
+  align-items: center;
+}
+
+.page-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.page-dot.active {
+  background: #73b7ff;
+  width: 24px;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(115,183,255,0.6);
+}
+
+/* Кнопки навигации страниц */
+.page-nav-btn {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  background: rgba(34,34,34,0.8);
+  border: 2px solid rgba(115,183,255,0.5);
+  border-radius: 50%;
+  color: #73b7ff;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 15;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.page-nav-btn:hover {
+  background: rgba(115,183,255,0.2);
+  border-color: #73b7ff;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.page-nav-btn.left {
+  left: 20px;
+}
+
+.page-nav-btn.right {
+  right: 20px;
+}
+
+.page-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.page-nav-btn:disabled:hover {
+  transform: translateY(-50%);
+  background: rgba(34,34,34,0.8);
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+  .game-grid {
+    grid-template-columns: repeat(4, 1fr); /* планшет: 4 колонки */
+  }
+  .page-nav-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+  .page-nav-btn.left {
+    left: 10px;
+  }
+  .page-nav-btn.right {
+    right: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .pages-container {
+    padding: 100px 20px 150px;
+  }
+  
+  .game-grid {
+    grid-template-columns: repeat(3, 1fr); /* телефон: 3 колонки */
+    gap: 15px;
+    padding: 100px 20px 150px;
+  }
+  
+  .game-icon {
+    max-width: 90px;
+  }
+  
+  .page-nav-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 18px;
+  }
+  
+  .page-indicator {
+    bottom: 80px;
+  }
+  
+  .volume-control {
+    width: 180px;
+    bottom: 70px;
+    right: 10px;
+    padding: 12px;
+  }
+  
+  .volume-slider-handle {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .top-bar {
+    font-size: 12px;
+  }
+  
+  .top-left, .top-right {
+    padding: 4px 8px;
+  }
+  
+  .profile-icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .profile-icon.big {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+
+    .game-title {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      text-shadow: 0 0 10px #73b7ff;
+      z-index: 9;
+    }
+
+    @keyframes pulse { 0% { filter: hue-rotate(0deg);} 100% { filter: hue-rotate(360deg);} }
+  
+.profile-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #444;
+  background-size: cover;
+  background-position: center;
+}
+
+.profile-icon.big {
+  width: 64px;
+  height: 64px;
+}
+
+
+.friend-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #555;
+  background-size: cover;
+  background-position: center;
+}
+
+#music-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background: #333;
+  color: white;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(255,255,255,0.3);
+  transition: all 0.3s;
+  z-index: 100;
+  outline: none;
+}
+
+#music-toggle:hover,
+#music-toggle.focused {
+  background: #555;
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(115,183,255,0.5);
+}
+
+/* Регулятор громкости */
+.volume-control {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 200px;
+  padding: 15px;
+  background: rgba(30, 30, 30, 0.95);
+  border: 2px solid rgba(150, 150, 150, 0.3);
+  border-radius: 15px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  z-index: 101;
+  backdrop-filter: blur(10px);
+}
+
+#music-toggle:hover ~ .volume-control,
+#music-toggle.focused ~ .volume-control,
+.volume-control:hover {
+  opacity: 1;
+  visibility: visible;
+}
+
+.volume-slider-container {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: rgba(100, 100, 100, 0.3);
+  border-radius: 10px;
+  overflow: visible; /* Чтобы ползунок был виден */
+  padding: 5px 0; /* Отступы сверху и снизу для ползунка */
+  box-sizing: content-box;
+}
+
+.volume-slider-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #4a90e2, #5dade2, #7d3c98);
+  background-size: 200% 100%;
+  animation: gradientShift 3s ease infinite;
+  border-radius: 10px;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.volume-slider-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #4a90e2, #5dade2, #7d3c98);
+  background-size: 200% 100%;
+  animation: gradientShift 3s ease infinite;
+  border-radius: 10px;
+  transform-origin: left;
+}
+
+.volume-slider-handle {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+  width: 22px;
+  height: 22px;
+  background: white;
+  border: 3px solid #4a90e2;
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 2px 10px rgba(74, 144, 226, 0.6), 0 0 15px rgba(74, 144, 226, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 10;
+}
+
+.volume-slider-handle:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+  box-shadow: 0 3px 15px rgba(74, 144, 226, 0.8), 0 0 20px rgba(74, 144, 226, 0.6);
+}
+
+.volume-slider-handle:active {
+  cursor: grabbing;
+  transform: translate(-50%, -50%) scale(1.25);
+}
+
+.volume-label {
+  color: white;
+  font-size: 12px;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.volume-indicators {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+  padding: 0 2px;
+}
+
+.volume-indicator {
+  font-size: 18px;
+  font-weight: bold;
+  user-select: none;
+  pointer-events: none;
+}
+
+.volume-indicator.minus {
+  color: #ff5050;
+  text-shadow: 0 0 8px rgba(255, 80, 80, 0.6);
+}
+
+.volume-indicator.plus {
+  color: #50ff50;
+  text-shadow: 0 0 8px rgba(80, 255, 80, 0.6);
+}
+
+/* ---------секции */
+.section {
+  display: none;
+  padding: 80px 20px;
+  text-align: center;
+  color: white;
+}
+.section.active {
+  display: block;
+}
+
+/* Меню профиля */
+.profile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.profile-menu-overlay.active {
+  display: flex;
+}
+
+.profile-menu {
+  background: rgba(80, 80, 80, 0.95);
+  border: 2px solid rgba(150, 150, 150, 0.5);
+  border-radius: 20px;
+  padding: 30px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.profile-menu-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.profile-menu-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: #555;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+  border: 3px solid #73b7ff;
+  transition: transform 0.2s;
+}
+
+.profile-menu-avatar:hover {
+  transform: scale(1.05);
+}
+
+.profile-menu-nick {
+  font-size: 18px;
+  color: white;
+  padding: 8px 12px;
+  background: rgba(50, 50, 50, 0.6);
+  border: 1px solid rgba(150, 150, 150, 0.3);
+  border-radius: 8px;
+  width: 250px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.profile-menu-nick:hover {
+  border-color: #73b7ff;
+}
+
+.profile-menu-nick.editing {
+  background: rgba(50, 50, 50, 0.9);
+  border-color: #73b7ff;
+}
+
+.profile-menu-settings {
+  border-top: 1px solid rgba(150, 150, 150, 0.3);
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: rgba(50, 50, 50, 0.6);
+  border: 1px solid rgba(150, 150, 150, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.settings-item:hover {
+  background: rgba(50, 50, 50, 0.8);
+  border-color: #73b7ff;
+}
+
+.settings-item-label {
+  color: white;
+  font-size: 14px;
+}
+
+.theme-toggle {
+  width: 50px;
+  height: 24px;
+  background: rgba(100, 100, 100, 0.5);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid rgba(150, 150, 150, 0.3);
+  transition: background 0.2s;
+}
+
+.theme-toggle.active {
+  background: #73b7ff;
+}
+
+.theme-toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: left 0.2s;
+}
+
+.theme-toggle.active .theme-toggle-slider {
+  left: 28px;
+}
+
+.profile-menu-close {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background: rgba(100, 100, 100, 0.5);
+  border: 1px solid rgba(150, 150, 150, 0.3);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.profile-menu-close:hover {
+  background: rgba(100, 100, 100, 0.8);
+  border-color: #73b7ff;
+}
+
+/* Светлая тема */
+body.light-theme {
+  background: #f5f5f5;
+  color: #333;
+}
+
+body.light-theme .top-left,
+body.light-theme .top-right {
+  background: rgba(200, 200, 200, 0.6);
+  border: 2px solid rgba(100, 100, 100, 0.5);
+  color: #333;
+}
+
+body.light-theme .app-title,
+body.light-theme .game-title {
+  color: #333;
+  text-shadow: 0 0 10px rgba(115, 183, 255, 0.3);
+}
+
+body.light-theme .game-grid {
+  background: transparent;
+}
+
+body.light-theme .game-icon {
+  background: linear-gradient(135deg, #e8e8e8, #d8d8d8);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(100, 100, 100, 0.3);
+}
+
+body.light-theme .game-icon.selected::before {
+  background: linear-gradient(45deg, #ff00cc, #73b7ff, #00ffcc);
+}
+
+body.light-theme .game-icon.selected::after {
+  background: linear-gradient(135deg, #e8e8e8, #d8d8d8);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+body.light-theme .page-nav-btn {
+  background: rgba(200, 200, 200, 0.8);
+  border: 2px solid rgba(115, 183, 255, 0.7);
+  color: #333;
+}
+
+body.light-theme .page-nav-btn:hover {
+  background: rgba(180, 180, 180, 0.9);
+  border-color: #73b7ff;
+}
+
+body.light-theme .page-dot {
+  background: rgba(100, 100, 100, 0.3);
+}
+
+body.light-theme .page-dot.active {
+  background: #73b7ff;
+  box-shadow: 0 0 10px rgba(115, 183, 255, 0.8);
+}
+
+body.light-theme .bottom-wrapper {
+  background: #e8e8e8;
+  border: 2px solid rgba(100, 100, 100, 0.3);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .bottom-icon img {
+  filter: brightness(0.8);
+}
+
+body.light-theme #music-toggle {
+  background: #d8d8d8;
+  color: #333;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme #music-toggle:hover,
+body.light-theme #music-toggle.focused {
+  background: #c8c8c8;
+  box-shadow: 0 0 20px rgba(115, 183, 255, 0.3);
+}
+
+body.light-theme .volume-control {
+  background: rgba(232, 232, 232, 0.95);
+  border: 2px solid rgba(100, 100, 100, 0.3);
+}
+
+body.light-theme .volume-label {
+  color: #333;
+}
+
+body.light-theme .volume-indicator.minus {
+  color: #ff5050;
+}
+
+body.light-theme .volume-indicator.plus {
+  color: #50c850;
+}
+
+body.light-theme .volume-slider-container {
+  background: rgba(150, 150, 150, 0.2);
+}
+
+body.light-theme .profile-menu {
+  background: rgba(220, 220, 220, 0.95);
+  border: 2px solid rgba(100, 100, 100, 0.5);
+  color: #333;
+}
+
+body.light-theme .profile-menu-nick,
+body.light-theme .settings-item,
+body.light-theme .profile-menu-close {
+  background: rgba(240, 240, 240, 0.8);
+  border: 1px solid rgba(100, 100, 100, 0.3);
+  color: #333;
+}
+
+body.light-theme .profile-menu-nick:hover,
+body.light-theme .settings-item:hover,
+body.light-theme .profile-menu-close:hover {
+  background: rgba(230, 230, 230, 0.9);
+  border-color: #73b7ff;
+}
+
+body.light-theme .settings-item-label {
+  color: #333;
+}
+
+body.light-theme .theme-toggle {
+  background: rgba(150, 150, 150, 0.3);
+  border: 1px solid rgba(100, 100, 100, 0.3);
+}
+
+body.light-theme .profile-menu-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+body.light-theme .section {
+  color: #333;
+}
+
+body.light-theme h2 {
+  color: #333;
+}
+
+body.light-theme p {
+  color: #333;
+}
+
+
+</style>
+</head>
+<body>
+
+<!-- Кнопка управления музыкой ну что бы не забыть -->
+<div id="music-toggle" tabindex="0">🔊</div>
+<div class="volume-control">
+  <div class="volume-label">Громкость</div>
+  <div class="volume-indicators">
+    <div class="volume-indicator minus">−</div>
+    <div class="volume-indicator plus">+</div>
+  </div>
+  <div class="volume-slider-container">
+    <div class="volume-slider-track"></div>
+    <div class="volume-slider-fill" id="volume-fill"></div>
+    <div class="volume-slider-handle" id="volume-handle"></div>
+  </div>
+</div>
+
+<!-- аааудио ну что бы не забыть -->
+<audio id="background-music" loop>
+  <source src="zinex.lol_files/background-music.mp3" type="audio/mpeg">
+</audio>
+
+
+<!-- Верхняя панель ну что бы не забыть -->
+<div class="top-bar">
+  <div class="top-left" id="friends-btn" style="cursor: pointer;">
+    <!-- аватар друзей -->
+    <div class="profile-icon" style="background-image:url('icons_Zii/sat.png');"></div>
+    <div>Друзья</div>
+  </div>
+  <div class="top-right">
+    <div id="current-date">12/01</div>
+    <div id="current-time">20:55</div>
+    <!-- иконка справа -->
+  <div class="profile-icon big" id="profile-avatar-btn" style="background-image:url('icons_Zii/zinex.gif'); cursor: pointer;"></div>
+  </div>
+</div>
+
+<!-- Меню профиля -->
+<div class="profile-menu-overlay" id="profile-menu-overlay">
+  <div class="profile-menu">
+    <div class="profile-menu-header">
+      <div class="profile-menu-avatar" id="profile-menu-avatar" style="background-image:url('icons_Zii/zinex.gif');"></div>
+      <input type="text" class="profile-menu-nick" id="profile-nick-input" value="Zinex" placeholder="Введите ник">
+    </div>
+    
+    <div class="profile-menu-settings">
+      <div class="settings-item" id="theme-toggle-item">
+        <span class="settings-item-label">Светлая тема</span>
+        <div class="theme-toggle" id="theme-toggle">
+          <div class="theme-toggle-slider"></div>
+        </div>
+      </div>
+    </div>
+    
+    <button class="profile-menu-close" id="profile-menu-close">Закрыть</button>
+  </div>
+</div>
+
+<!-- Меню друзей -->
+<div class="profile-menu-overlay" id="friends-menu-overlay">
+  <div class="profile-menu">
+    <h2 style="margin-top: 0; color: white;">Друзья</h2>
+    <div style="padding: 20px; color: white; text-align: center;">
+      <p>Здесь будет список друзей.</p>
+    </div>
+    <button class="profile-menu-close" id="friends-menu-close">Закрыть</button>
+  </div>
+</div>
+
+  <!-- назв выбранного приложения -->
+  <div class="app-title">-</div>
+
+  <!-- друзья ну что бы не забыть -->
+  <div class="friends">
+    <div class="friend-circle"></div>
+    <div class="friend-circle"></div>
+    <div class="friend-circle"></div>
+  </div>
+
+<!-- Нижняя панель в рамке -->
+<div class="bottom-wrapper">
+  <div class="bottom-bar">
+    <div class="bottom-icon" data-section="home">
+      <img src="icons_Zii/Home.png" alt="Home" />
+    </div>
+    <div class="bottom-icon" data-section="games">
+      <img src="icons_Zii/Games.png" alt="Games" />
+    </div>
+    <div class="bottom-icon" data-section="achievements">
+      <img src="icons_Zii/Achievements.png" alt="Achievements" />
+    </div>
+    <div class="bottom-icon" data-section="friends">
+      <img src="icons_Zii/Friends.png" alt="Friends" />
+    </div>
+    <div class="bottom-icon" data-section="apps">
+      <img src="icons_Zii/ALLApps.png" alt="All Apps" />
+    </div>
+  </div>
+</div>
+
+<!-- Секции -->
+<div id="section-home" class="section active">
+  <!-- Контейнер страниц -->
+  <div class="pages-container">
+    <!-- Страница 1 -->
+    <div class="game-grid active" data-page="0">
+      <div class="game-icon selected" data-name="Emulator" data-url="data/index.html">
+        <img src="icons_Zii/SegaMegaDrive.png" alt="Emulator Icon">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+         <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+    </div>
+    <!-- Страница 2 (пример - можно добавить больше страниц) -->
+    <div class="game-grid" data-page="1">
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+         <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+      <div class="game-icon" data-name="—">
+        <img src="icons_Zii/empty.png" alt="Empty">
+      </div>
+   
+    </div>
+  </div>
+  
+  <!-- Кнопки навигации страниц -->
+  <button class="page-nav-btn left" id="page-prev">‹</button>
+  <button class="page-nav-btn right" id="page-next">›</button>
+  
+  <!-- Индикатор страниц -->
+  <div class="page-indicator" id="page-indicator"></div>
+  
+  <div class="game-title">Emulator</div>
+</div>
+
+<div id="section-games" class="section">
+  <h2>Игры</h2>
+  <p>Здесь пока пусто.</p>
+</div>
+
+<div id="section-achievements" class="section">
+  <h2>Достижения</h2>
+  <p>Здесь будут достижения.</p>
+</div>
+
+<div id="section-friends" class="section">
+  <h2>Друзья</h2>
+  <p>Здесь будет список друзей.</p>
+</div>
+
+<div id="section-apps" class="section">
+  <h2>Все приложения</h2>
+  <p>Здесь будут приложения.</p>
+</div>
+
+
+
+<script>
+  // ========== СИСТЕМА СТРАНИЦ ==========
+  let currentPage = 0;
+  let currentGameIndex = 0;
+  const pages = document.querySelectorAll('.game-grid');
+  const pagePrevBtn = document.getElementById('page-prev');
+  const pageNextBtn = document.getElementById('page-next');
+  const pageIndicator = document.getElementById('page-indicator');
+
+  function initPageIndicator() {
+    pageIndicator.innerHTML = '';
+    pages.forEach((_, index) => {
+      const dot = document.createElement('div');
+      dot.className = 'page-dot' + (index === currentPage ? ' active' : '');
+      dot.addEventListener('click', () => goToPage(index));
+      pageIndicator.appendChild(dot);
+    });
+    updatePageButtons();
+  }
+
+  function goToPage(pageIndex, setIndex = null) {
+    if (pageIndex < 0 || pageIndex >= pages.length) return;
+    
+    const direction = pageIndex > currentPage ? 'next' : 'prev';
+    const currentGrid = pages[currentPage];
+    const newGrid = pages[pageIndex];
+    
+    currentGrid.classList.remove('active');
+    if (direction === 'next') {
+      currentGrid.classList.add('prev');
+      newGrid.style.transform = 'translateX(100%)';
+    } else {
+      newGrid.style.transform = 'translateX(-100%)';
+    }
+    
+    setTimeout(() => {
+      currentGrid.classList.remove('prev');
+      newGrid.classList.add('active');
+      newGrid.style.transform = 'translateX(0)';
+      currentPage = pageIndex;
+      
+      updatePageIndicator();
+      updatePageButtons();
+      
+      const iconsOnPage = newGrid.querySelectorAll('.game-icon');
+      if (iconsOnPage.length > 0) {
+        if (setIndex !== null) {
+          currentGameIndex = Math.min(setIndex, iconsOnPage.length - 1);
+        } else if (direction === 'next') {
+          currentGameIndex = 0;
+        } else {
+          currentGameIndex = iconsOnPage.length - 1;
+        }
+        updateGameSelection(currentGameIndex, newGrid);
+      }
+    }, 10);
+  }
+
+  function updatePageIndicator() {
+    const dots = pageIndicator.querySelectorAll('.page-dot');
+    dots.forEach((dot, index) => {
+      dot.classList.toggle('active', index === currentPage);
+    });
+  }
+
+  function updatePageButtons() {
+    pagePrevBtn.disabled = currentPage === 0;
+    pageNextBtn.disabled = currentPage === pages.length - 1;
+  }
+
+  pagePrevBtn.addEventListener('click', () => {
+    if (currentPage > 0) goToPage(currentPage - 1);
+  });
+
+  pageNextBtn.addEventListener('click', () => {
+    if (currentPage < pages.length - 1) goToPage(currentPage + 1);
+  });
+
+  initPageIndicator();
+
+  // ========== НАВИГАЦИЯ ПО ИКОНКАМ ==========
+  function getCurrentPageIcons() {
+    const currentGrid = pages[currentPage];
+    return currentGrid ? currentGrid.querySelectorAll('.game-icon') : [];
+  }
+
+  function updateGameSelection(index, grid = null) {
+    const currentGrid = grid || pages[currentPage];
+    const gameIcons = currentGrid.querySelectorAll('.game-icon');
+    
+    gameIcons.forEach((icon, i) => {
+      icon.classList.toggle('selected', i === index);
+    });
+    
+    const title = document.querySelector('.game-title');
+    if (gameIcons[index]) {
+      const name = gameIcons[index].getAttribute('data-name') || '—';
+      title.textContent = name;
+    }
+  }
+
+  updateGameSelection(currentGameIndex);
+
+  pages.forEach((grid) => {
+    const icons = grid.querySelectorAll('.game-icon');
+    icons.forEach((icon, i) => {
+      icon.addEventListener('mouseenter', () => {
+        if (grid.classList.contains('active')) {
+          currentGameIndex = i;
+          updateGameSelection(currentGameIndex, grid);
+        }
+      });
+      icon.addEventListener('click', () => {
+        const url = icon.getAttribute('data-url');
+        if (url && url !== '—') {
+          window.location.href = url;
+        }
+      });
+    });
+  });
+
+  window.isNavigatingMute = false;
+
+  document.addEventListener('keydown', (e) => {
+    const homeSection = document.getElementById('section-home');
+    if (!homeSection || !homeSection.classList.contains('active')) {
+      return;
+    }
+    
+    const gameIcons = getCurrentPageIcons();
+    
+    if (window.isNavigatingMute) {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        window.isNavigatingMute = false;
+        toggleBtn.classList.remove('focused');
+        toggleBtn.blur();
+        volumeControl.style.opacity = '0';
+        volumeControl.style.visibility = 'hidden';
+        if (gameIcons.length > 0) {
+          updateGameSelection(currentGameIndex);
+        }
+        return;
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        if (e.key === 'ArrowRight') {
+          volume = Math.min(1, volume + 0.1);
+        } else {
+          volume = Math.max(0, volume - 0.1);
+        }
+        if (music) music.volume = volume;
+        updateVolumeDisplay();
+        return;
+      } else if (e.key === 'Enter') {
+        toggleMusic();
+        return;
+      }
+      return;
+    }
+    
+    if (gameIcons.length === 0) return;
+    
+    if (e.key === 'ArrowRight') {
+      if (currentGameIndex === gameIcons.length - 1 && currentPage < pages.length - 1) {
+        goToPage(currentPage + 1, 0);
+      } else {
+        currentGameIndex = (currentGameIndex + 1) % gameIcons.length;
+        updateGameSelection(currentGameIndex);
+      }
+    } else if (e.key === 'ArrowLeft') {
+      if (currentGameIndex === 0 && currentPage > 0) {
+        const prevPageIcons = pages[currentPage - 1].querySelectorAll('.game-icon');
+        goToPage(currentPage - 1, prevPageIcons.length - 1);
+      } else {
+        currentGameIndex = (currentGameIndex - 1 + gameIcons.length) % gameIcons.length;
+        updateGameSelection(currentGameIndex);
+      }
+    } else if (e.key === 'ArrowUp') {
+      const cols = 12; // Фиксированное количество колонок
+      if (currentGameIndex >= cols) {
+        currentGameIndex -= cols;
+        updateGameSelection(currentGameIndex);
+      }
+    } else if (e.key === 'ArrowDown') {
+      const cols = 12; // Фиксированное количество колонок
+      const rows = Math.ceil(gameIcons.length / cols);
+      const currentRow = Math.floor(currentGameIndex / cols);
+      const isLastRow = currentRow === rows - 1 || currentGameIndex + cols >= gameIcons.length;
+      if (isLastRow) {
+        window.isNavigatingMute = true;
+        toggleBtn.focus();
+        toggleBtn.classList.add('focused');
+        volumeControl.style.opacity = '1';
+        volumeControl.style.visibility = 'visible';
+        gameIcons.forEach(icon => icon.classList.remove('selected'));
+      } else if (currentGameIndex + cols < gameIcons.length) {
+        currentGameIndex += cols;
+        updateGameSelection(currentGameIndex);
+      }
+    } else if (e.key === 'Enter') {
+      const url = gameIcons[currentGameIndex].getAttribute('data-url');
+      if (url && url !== '—') {
+        window.location.href = url;
+      }
+    }
+  });
+
+const music = document.getElementById('background-music');
+const toggleBtn = document.getElementById('music-toggle');
+const volumeControl = document.querySelector('.volume-control');
+const volumeFill = document.getElementById('volume-fill');
+const volumeHandle = document.getElementById('volume-handle');
+const volumeContainer = document.querySelector('.volume-slider-container');
+let isPlaying = false;
+let isMuteFocused = false;
+let volume = 1; // Громкость от 0 до 1
+
+if (music) {
+  music.volume = volume;
+  updateVolumeDisplay();
+}
+
+function updateVolumeDisplay() {
+  const percentage = volume * 100;
+  volumeFill.style.transform = `scaleX(${volume})`;
+  volumeHandle.style.left = `${percentage}%`;
+}
+
+let isDragging = false;
+
+function updateVolumeFromEvent(e) {
+  const rect = volumeContainer.getBoundingClientRect();
+  const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+  const x = clientX - rect.left;
+  const percentage = Math.max(0, Math.min(1, x / rect.width));
+  volume = percentage;
+  if (music) music.volume = volume;
+  updateVolumeDisplay();
+}
+
+volumeContainer.addEventListener('mousedown', (e) => {
+  e.preventDefault();
+  isDragging = true;
+  updateVolumeFromEvent(e);
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (isDragging) {
+    e.preventDefault();
+    updateVolumeFromEvent(e);
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+});
+
+volumeContainer.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  isDragging = true;
+  updateVolumeFromEvent(e);
+}, { passive: false });
+
+document.addEventListener('touchmove', (e) => {
+  if (isDragging) {
+    e.preventDefault();
+    updateVolumeFromEvent(e);
+  }
+}, { passive: false });
+
+document.addEventListener('touchend', () => {
+  isDragging = false;
+});
+
+document.addEventListener('touchcancel', () => {
+  isDragging = false;
+});
+
+function toggleMusic() {
+  if (!music) return;
+
+  if (isPlaying) {
+    music.pause();
+    isPlaying = false;
+    toggleBtn.textContent = "🔇"; 
+  } else {
+    const playPromise = music.play();
+    if (playPromise && typeof playPromise.then === 'function') {
+      playPromise.then(() => {
+        isPlaying = true;
+        toggleBtn.textContent = "🔊"; 
+      }).catch(() => {
+      });
+    } else {
+      isPlaying = true;
+      toggleBtn.textContent = "🔊"; 
+    }
+  }
+}
+
+toggleBtn.addEventListener('click', toggleMusic);
+
+toggleBtn.addEventListener('focus', () => {
+  isMuteFocused = true;
+  window.isNavigatingMute = true;
+  toggleBtn.classList.add('focused');
+  volumeControl.style.opacity = '1';
+  volumeControl.style.visibility = 'visible';
+});
+
+toggleBtn.addEventListener('blur', () => {
+  isMuteFocused = false;
+  if (!window.isNavigatingMute) {
+    toggleBtn.classList.remove('focused');
+    if (!volumeControl.matches(':hover')) {
+      volumeControl.style.opacity = '0';
+      volumeControl.style.visibility = 'hidden';
+    }
+  }
+});
+
+volumeControl.addEventListener('mouseenter', () => {
+  volumeControl.style.opacity = '1';
+  volumeControl.style.visibility = 'visible';
+});
+
+volumeControl.addEventListener('mouseleave', () => {
+  if (!isMuteFocused) {
+    volumeControl.style.opacity = '0';
+    volumeControl.style.visibility = 'hidden';
+  }
+});
+
+toggleBtn.textContent = "🔇";
+
+// ========== ОБНОВЛЕНИЕ ДАТЫ И ВРЕМЕНИ ==========
+function updateDateTime() {
+  const now = new Date();
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const dateStr = `${day}/${month}`;
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const timeStr = `${hours}:${minutes}`;
+  const dateElement = document.getElementById('current-date');
+  const timeElement = document.getElementById('current-time');
+  
+  if (dateElement) dateElement.textContent = dateStr;
+  if (timeElement) timeElement.textContent = timeStr;
+}
+
+updateDateTime();
+setInterval(updateDateTime, 60000);
+
+const bottomIcons = document.querySelectorAll('.bottom-icon');
+const sections = document.querySelectorAll('.section');
+
+bottomIcons.forEach(icon => {
+  icon.addEventListener('click', () => {
+    bottomIcons.forEach(i => i.classList.remove('active'));
+    icon.classList.add('active');
+    sections.forEach(sec => sec.classList.remove('active'));
+    const target = icon.getAttribute('data-section');
+    document.getElementById('section-' + target).classList.add('active');
+  });
+});
+
+const homeIcon = document.querySelector('.bottom-icon[data-section="home"]');
+if (homeIcon && !homeIcon.classList.contains('active')) {
+  homeIcon.classList.add('active');
+}
+
+// ========== ГЕЙМПАД ==========
+let gamepadIndex = null;
+let lastAxisX = 0;
+let lastAxisY = 0;
+let lastAxisTimeX = 0;
+let lastAxisTimeY = 0;
+const axisDeadzone = 0.4;
+const axisDelay = 200;
+const sectionOrder = ['home', 'games', 'achievements', 'friends', 'apps'];
+
+window.addEventListener('gamepadconnected', (e) => {
+  if (gamepadIndex === null) {
+    gamepadIndex = e.gamepad.index;
+    requestAnimationFrame(updateGamepad);
+  }
+});
+
+window.addEventListener('gamepaddisconnected', (e) => {
+  if (e.gamepad.index === gamepadIndex) {
+    gamepadIndex = null;
+  }
+});
+
+function updateGamepad() {
+  if (gamepadIndex !== null) {
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    const gp = gamepads[gamepadIndex];
+
+    if (gp) {
+      const now = performance.now();
+      const axX = gp.axes[0] || 0;
+      const axY = gp.axes[1] || 0;
+
+      if (Math.abs(axX) < axisDeadzone) {
+        lastAxisX = 0;
+      }
+      if (Math.abs(axY) < axisDeadzone) {
+        lastAxisY = 0;
+      }
+
+      if (axX > axisDeadzone && lastAxisX <= axisDeadzone && now - lastAxisTimeX > axisDelay) {
+        lastAxisTimeX = now;
+        lastAxisX = axX;
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+      } else if (axX < -axisDeadzone && lastAxisX >= -axisDeadzone && now - lastAxisTimeX > axisDelay) {
+        lastAxisTimeX = now;
+        lastAxisX = axX;
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+      }
+
+      if (axY > axisDeadzone && lastAxisY <= axisDeadzone && now - lastAxisTimeY > axisDelay) {
+        lastAxisTimeY = now;
+        lastAxisY = axY;
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+      } else if (axY < -axisDeadzone && lastAxisY >= -axisDeadzone && now - lastAxisTimeY > axisDelay) {
+        lastAxisTimeY = now;
+        lastAxisY = axY;
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp' }));
+      }
+
+      const lb = gp.buttons[4];
+      const rb = gp.buttons[5];
+      if (!updateGamepad.lastButtons) {
+        updateGamepad.lastButtons = { lb: false, rb: false, a: false };
+      }
+
+      if (lb && lb.pressed && !updateGamepad.lastButtons.lb) {
+        switchSectionByGamepad(-1);
+      }
+      if (rb && rb.pressed && !updateGamepad.lastButtons.rb) {
+        switchSectionByGamepad(1);
+      }
+
+      updateGamepad.lastButtons.lb = !!(lb && lb.pressed);
+      updateGamepad.lastButtons.rb = !!(rb && rb.pressed);
+
+      const btnA = gp.buttons[0];
+      if (btnA && btnA.pressed && !updateGamepad.lastButtons.a) {
+        if (window.isNavigatingMute) {
+          toggleMusic();
+        } else {
+          document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+        }
+      }
+      updateGamepad.lastButtons.a = !!(btnA && btnA.pressed);
+
+      const btnUp = gp.buttons[12];
+      const btnDown = gp.buttons[13];
+      const btnLeft = gp.buttons[14];
+      const btnRight = gp.buttons[15];
+
+      if (!updateGamepad.lastDpad) {
+        updateGamepad.lastDpad = { up: false, down: false, left: false, right: false };
+      }
+
+      if (btnUp && btnUp.pressed && !updateGamepad.lastDpad.up) {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp' }));
+      }
+      if (btnDown && btnDown.pressed && !updateGamepad.lastDpad.down) {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+      }
+      if (btnLeft && btnLeft.pressed && !updateGamepad.lastDpad.left) {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+      }
+      if (btnRight && btnRight.pressed && !updateGamepad.lastDpad.right) {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+      }
+
+      updateGamepad.lastDpad.up = !!(btnUp && btnUp.pressed);
+      updateGamepad.lastDpad.down = !!(btnDown && btnDown.pressed);
+      updateGamepad.lastDpad.left = !!(btnLeft && btnLeft.pressed);
+      updateGamepad.lastDpad.right = !!(btnRight && btnRight.pressed);
+    }
+  }
+
+  requestAnimationFrame(updateGamepad);
+}
+
+function switchSectionByGamepad(direction) {
+  const activeIcon = document.querySelector('.bottom-icon.active');
+  let currentSection = 'home';
+
+  if (activeIcon) {
+    const data = activeIcon.getAttribute('data-section');
+    if (data) currentSection = data;
+  }
+
+  let index = sectionOrder.indexOf(currentSection);
+  if (index === -1) index = 0;
+
+  index = (index + direction + sectionOrder.length) % sectionOrder.length;
+  const targetSection = sectionOrder[index];
+  const targetIcon = document.querySelector('.bottom-icon[data-section="' + targetSection + '"]');
+
+  if (targetIcon) {
+    targetIcon.click();
+  }
+}
+
+// ========== МЕНЮ ПРОФИЛЯ ==========
+const profileAvatarBtn = document.getElementById('profile-avatar-btn');
+const profileMenuOverlay = document.getElementById('profile-menu-overlay');
+const profileMenuClose = document.getElementById('profile-menu-close');
+const profileNickInput = document.getElementById('profile-nick-input');
+const themeToggle = document.getElementById('theme-toggle');
+let isDarkTheme = true;
+
+profileAvatarBtn.addEventListener('click', () => {
+  profileMenuOverlay.classList.add('active');
+});
+
+profileMenuClose.addEventListener('click', () => {
+  profileMenuOverlay.classList.remove('active');
+});
+
+profileMenuOverlay.addEventListener('click', (e) => {
+  if (e.target === profileMenuOverlay) {
+    profileMenuOverlay.classList.remove('active');
+  }
+});
+
+profileNickInput.addEventListener('click', () => {
+  profileNickInput.classList.add('editing');
+  profileNickInput.focus();
+});
+
+profileNickInput.addEventListener('blur', () => {
+  profileNickInput.classList.remove('editing');
+});
+
+themeToggle.addEventListener('click', () => {
+  isDarkTheme = !isDarkTheme;
+  themeToggle.classList.toggle('active');
+  
+  if (isDarkTheme) {
+    document.body.classList.remove('light-theme');
+  } else {
+    document.body.classList.add('light-theme');
+  }
+  
+  localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
+});
+
+window.addEventListener('load', () => {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'light') {
+    isDarkTheme = false;
+    themeToggle.classList.add('active');
+    document.body.classList.add('light-theme');
+  }
+});
+
+// ========== МЕНЮ ДРУЗЕЙ ==========
+const friendsBtn = document.getElementById('friends-btn');
+const friendsMenuOverlay = document.getElementById('friends-menu-overlay');
+const friendsMenuClose = document.getElementById('friends-menu-close');
+
+friendsBtn.addEventListener('click', () => {
+  friendsMenuOverlay.classList.add('active');
+});
+
+friendsMenuClose.addEventListener('click', () => {
+  friendsMenuOverlay.classList.remove('active');
+});
+
+friendsMenuOverlay.addEventListener('click', (e) => {
+  if (e.target === friendsMenuOverlay) {
+    friendsMenuOverlay.classList.remove('active');
+  }
+});
+
+
+</script>
+
+</body>
+</html>

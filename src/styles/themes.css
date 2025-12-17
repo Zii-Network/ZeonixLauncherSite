@@ -1,0 +1,479 @@
+/* CSS переменные для тем */
+:root {
+  --bg-primary: #111;
+  --bg-secondary: #222;
+  --text-primary: white;
+  --text-secondary: #ccc;
+  --accent: #73b7ff;
+  --accent-secondary: #ff6b3d;
+  --border: rgba(150, 150, 150, 0.5);
+}
+
+/* Темные темы */
+.theme-dark {
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.theme-cyberpunk {
+  --bg-primary: #0a0a1a;
+  --bg-secondary: #151530;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0ff;
+  --accent: #ff00ff;
+  --accent-secondary: #00ffff;
+  --border: rgba(255, 0, 255, 0.3);
+}
+
+.theme-neon {
+  --bg-primary: #000011;
+  --bg-secondary: #001122;
+  --text-primary: #ffffff;
+  --text-secondary: #00ff00;
+  --accent: #00ff00;
+  --accent-secondary: #ff0099;
+  --border: rgba(0, 255, 0, 0.3);
+}
+
+/* Светлая тема */
+.theme-light {
+  --bg-primary: #f5f5f5;
+  --bg-secondary: #e8e8e8;
+  --text-primary: #333;
+  --text-secondary: #666;
+  --accent: #73b7ff;
+  --accent-secondary: #ff6b3d;
+  --border: rgba(100, 100, 100, 0.3);
+}
+
+/* Liquid Glass эффекты */
+.liquid-glass #music-toggle,
+.liquid-glass .top-left,
+.liquid-glass .top-right,
+.liquid-glass .bottom-wrapper,
+.liquid-glass .console-cube,
+.liquid-glass .game-cube,
+.liquid-glass .selected-console {
+  background: rgba(30, 30, 40, 0.3) !important;
+  backdrop-filter: blur(10px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 20px var(--accent, rgba(115, 183, 255, 0.2));
+}
+
+.liquid-glass .console-cube.active::before,
+.liquid-glass .game-cube.active::before {
+  background: linear-gradient(
+    45deg,
+    var(--accent),
+    transparent,
+    var(--accent)
+  ) !important;
+  animation: liquidFlow 3s linear infinite;
+}
+
+@keyframes liquidFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Применяем переменные к элементам */
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+.top-left, .top-right {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border);
+  color: var(--text-primary);
+}
+
+.bottom-wrapper {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border);
+}
+
+.bottom-icon.active::after {
+  box-shadow: 
+    0 0 20px var(--accent),
+    0 0 40px rgba(80, 100, 255, 0.6),
+    0 0 60px rgba(150, 80, 255, 0.4);
+}
+
+.game-icon {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+}
+
+.game-icon.selected::before {
+  background: linear-gradient(45deg, #ff00cc, var(--accent), #00ffcc);
+}
+
+.app-title, .game-title {
+  color: var(--text-primary);
+  text-shadow: 0 0 10px var(--accent);
+}
+
+/* Регулятор громкости */
+#music-toggle {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 2px solid var(--border);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+#music-toggle:hover {
+  background: var(--accent);
+  color: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 20px var(--accent);
+}
+
+.volume-control {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border);
+}
+
+.volume-label {
+  color: var(--text-primary);
+}
+
+.volume-indicator.minus {
+  color: #ff5050;
+}
+
+.volume-indicator.plus {
+  color: #50ff50;
+}
+
+.volume-slider-container {
+  background: rgba(100, 100, 100, 0.3);
+}
+
+.volume-slider-track {
+  background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+}
+
+.volume-slider-fill {
+  background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+}
+
+.volume-slider-handle {
+  background: var(--text-primary);
+  border-color: var(--accent);
+}
+
+/* ==========================================
+   RETRO ACHIEVEMENTS СТИЛИ ДЛЯ ТЕМ
+   ========================================== */
+
+/* Контейнер для RetroAchievements */
+.achievements-section {
+    background: linear-gradient(135deg, 
+        var(--bg-primary) 0%, 
+        var(--bg-secondary) 100%
+    );
+    border: 2px solid var(--border);
+    color: var(--text-primary);
+}
+
+.achievements-section::before {
+    background: linear-gradient(90deg, 
+        var(--accent-secondary, #ff00cc), 
+        var(--accent, #73b7ff), 
+        var(--text-secondary, #00ffcc), 
+        var(--accent-secondary, #ff9900)
+    );
+}
+
+.achievements-section h2 {
+    background: linear-gradient(45deg, 
+        var(--accent-secondary, #ff00cc), 
+        var(--accent, #73b7ff), 
+        var(--text-secondary, #00ffcc)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 30px rgba(var(--accent-rgb, 115, 183, 255), 0.5);
+}
+
+/* Контейнер входа */
+.login-container {
+    background: rgba(30, 30, 46, 0.95);
+    border: 2px solid var(--border);
+    color: var(--text-primary);
+}
+
+.login-container h3 {
+    color: var(--accent);
+    text-shadow: 0 0 15px currentColor;
+}
+
+/* Форма входа */
+.form-group label {
+    color: var(--text-secondary);
+}
+
+.form-group input {
+    background: rgba(20, 20, 35, 0.8);
+    border: 2px solid rgba(var(--accent-rgb, 115, 183, 255), 0.2);
+    color: var(--text-primary);
+}
+
+.form-group input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(var(--accent-rgb, 115, 183, 255), 0.3);
+    background: rgba(25, 25, 45, 0.9);
+}
+
+.form-group small {
+    color: var(--text-secondary);
+}
+
+.form-group a {
+    color: var(--accent);
+}
+
+.form-group a:hover {
+    color: var(--text-secondary);
+    text-shadow: 0 0 10px var(--text-secondary);
+}
+
+/* Кнопка входа - адаптация под тему */
+.login-button {
+    background: linear-gradient(135deg, 
+        rgba(var(--accent-rgb, 102, 126, 234), 0.8), 
+        rgba(var(--accent-secondary-rgb, 118, 75, 162), 0.8)
+    );
+    color: var(--text-primary);
+}
+
+.login-button:hover:not(:disabled) {
+    box-shadow: 0 15px 30px rgba(var(--accent-rgb, 102, 126, 234), 0.4);
+}
+
+/* Контейнер профиля */
+.profile-container {
+    background: rgba(30, 30, 46, 0.95);
+    border: 2px solid rgba(var(--accent-rgb, 115, 183, 255), 0.2);
+}
+
+/* Карточки статистики */
+.stat-card {
+    background: linear-gradient(135deg, 
+        rgba(var(--accent-rgb, 115, 183, 255), 0.1) 0%, 
+        rgba(var(--text-secondary-rgb, 0, 255, 204), 0.1) 100%
+    );
+    border: 2px solid rgba(var(--accent-rgb, 115, 183, 255), 0.3);
+}
+
+.stat-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 10px 25px rgba(var(--accent-rgb, 115, 183, 255), 0.3);
+}
+
+.stat-card::before {
+    background: linear-gradient(90deg, 
+        var(--accent-secondary, #ff00cc), 
+        var(--accent, #73b7ff), 
+        var(--text-secondary, #00ffcc)
+    );
+}
+
+.stat-label {
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    background: linear-gradient(45deg, var(--accent), var(--text-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Девиз пользователя */
+.motto {
+    background: rgba(var(--accent-rgb, 115, 183, 255), 0.1);
+    border-left: 4px solid var(--accent);
+    color: var(--text-primary);
+}
+
+.motto strong {
+    color: var(--accent);
+}
+
+.motto::before,
+.motto::after {
+    color: rgba(var(--accent-rgb, 115, 183, 255), 0.2);
+}
+
+/* Недавние игры */
+.recent-games h4 {
+    color: var(--accent);
+}
+
+.game-card {
+    background: rgba(20, 20, 35, 0.8);
+    border: 2px solid rgba(var(--accent-rgb, 115, 183, 255), 0.1);
+}
+
+.game-card:hover {
+    background: rgba(25, 25, 45, 0.9);
+    border-color: rgba(var(--accent-rgb, 115, 183, 255), 0.3);
+    box-shadow: 0 5px 20px rgba(var(--accent-rgb, 115, 183, 255), 0.2);
+}
+
+.game-title {
+    color: var(--text-primary);
+}
+
+.game-meta {
+    color: var(--text-secondary);
+}
+
+/* Liquid Glass эффект для RetroAchievements */
+.liquid-glass .achievements-section {
+    background: rgba(30, 30, 40, 0.3) !important;
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 0 20px var(--accent, rgba(115, 183, 255, 0.2));
+}
+
+.liquid-glass .login-container,
+.liquid-glass .profile-container,
+.liquid-glass .stat-card {
+    background: rgba(40, 40, 60, 0.25) !important;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.liquid-glass .stat-card::before {
+    animation: liquidFlow 3s linear infinite;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--accent),
+        transparent,
+        var(--accent),
+        transparent
+    ) !important;
+    background-size: 200% 100%;
+}
+
+/* Темная тема - кастомные цвета для RA */
+.theme-dark .achievements-section {
+    --accent-rgb: 115, 183, 255;
+    --accent-secondary-rgb: 255, 107, 61;
+    --text-secondary-rgb: 204, 204, 204;
+}
+
+/* Cyberpunk тема для RA */
+.theme-cyberpunk .achievements-section {
+    --accent-rgb: 255, 0, 255;
+    --accent-secondary-rgb: 0, 255, 255;
+    --text-secondary-rgb: 160, 160, 255;
+}
+
+.theme-cyberpunk .achievements-section::before {
+    background: linear-gradient(90deg, 
+        #ff00ff, 
+        #00ffff, 
+        #ffff00, 
+        #ff00ff
+    );
+    animation: cyberpunkGlow 2s linear infinite;
+}
+
+@keyframes cyberpunkGlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.theme-cyberpunk .stat-card {
+    border: 2px solid rgba(255, 0, 255, 0.5);
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+}
+
+.theme-cyberpunk .stat-card:hover {
+    box-shadow: 0 0 30px rgba(255, 0, 255, 0.6);
+}
+
+/* Neon тема для RA */
+.theme-neon .achievements-section {
+    --accent-rgb: 0, 255, 0;
+    --accent-secondary-rgb: 255, 0, 153;
+    --text-secondary-rgb: 0, 255, 0;
+}
+
+.theme-neon .achievements-section h2 {
+    text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00;
+}
+
+.theme-neon .stat-card {
+    border: 2px solid rgba(0, 255, 0, 0.5);
+    box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.2);
+}
+
+.theme-neon .stat-card:hover {
+    box-shadow: 0 0 25px rgba(0, 255, 0, 0.6), inset 0 0 15px rgba(0, 255, 0, 0.3);
+}
+
+.theme-neon .login-button {
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+}
+
+.theme-neon .login-button:hover:not(:disabled) {
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.8);
+}
+
+/* Светлая тема для RA */
+.theme-light .achievements-section {
+    background: linear-gradient(135deg, 
+        #f0f0f0 0%, 
+        #e0e0e0 100%
+    );
+    border: 2px solid rgba(100, 100, 100, 0.2);
+    color: #333;
+}
+
+.theme-light .login-container,
+.theme-light .profile-container {
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    border: 2px solid rgba(100, 100, 100, 0.2);
+}
+
+.theme-light .form-group input {
+    background: rgba(240, 240, 240, 0.9);
+    border: 2px solid rgba(100, 100, 100, 0.2);
+    color: #333;
+}
+
+.theme-light .form-group input:focus {
+    border-color: #73b7ff;
+    box-shadow: 0 0 15px rgba(115, 183, 255, 0.4);
+}
+
+.theme-light .game-card {
+    background: rgba(240, 240, 240, 0.9);
+    border: 2px solid rgba(100, 100, 100, 0.2);
+    color: #333;
+}
+
+.theme-light .game-title {
+    color: #333;
+}
+
+.theme-light .game-meta {
+    color: #666;
+}

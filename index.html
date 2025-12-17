@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConsoleDS - Игровая консоль</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #111;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        #root {
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-size: 20px;
+            color: #73b7ff;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(115, 183, 255, 0.3);
+            border-top: 5px solid #73b7ff;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>Загрузка игрового меню...</p>
+        </div>
+    </div>
+    
+    <!-- React и зависимости -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Основное приложение -->
+    <script type="text/babel" data-presets="react">
+        // Здесь будет ваш React код
+        const { useState, useEffect } = React;
+        
+        function App() {
+            const [loaded, setLoaded] = useState(false);
+            
+            useEffect(() => {
+                // Симуляция загрузки
+                setTimeout(() => setLoaded(true), 1000);
+            }, []);
+            
+            if (!loaded) {
+                return React.createElement('div', { className: 'loading' }, [
+                    React.createElement('div', { key: 'spinner', className: 'loading-spinner' }),
+                    React.createElement('p', { key: 'text' }, 'Загрузка игрового меню...')
+                ]);
+            }
+            
+            return React.createElement('div', { className: 'app' }, [
+                React.createElement('h1', { key: 'title' }, 'ConsoleDS Menu'),
+                React.createElement('p', { key: 'desc' }, 'React версия загружена!')
+            ]);
+        }
+        
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+    </script>
+</body>
+</html>
