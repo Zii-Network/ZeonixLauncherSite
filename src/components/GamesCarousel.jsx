@@ -82,9 +82,7 @@ const GamesCarousel = () => {
   const [selectedGame, setSelectedGame] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showFolderSelector, setShowFolderSelector] = useState(true);
-  const [showEmulator, setShowEmulator] = useState(false);
   const [currentGameData, setCurrentGameData] = useState(null);
-  const [gameFiles, setGameFiles] = useState({}); // Храним файлы игр
   const [emulatorUrl, setEmulatorUrl] = useState('');
   
   const fileInputRef = useRef(null);
@@ -409,24 +407,6 @@ const GamesCarousel = () => {
     if (document.exitFullscreen) {
       document.exitFullscreen();
     }
-    
-    // Очищаем временные файлы на сервере эмулятора
-    if (currentGameData?.fileName) {
-      fetch(`http://localhost:3001/cleanup?filename=${encodeURIComponent(currentGameData.fileName)}`, {
-        method: 'POST'
-      }).catch(e => console.log('Cleanup error:', e));
-    }
-  };
-
-  // Управление эмулятором через сообщения
-  const sendEmulatorCommand = (command) => {
-    const iframe = emulatorIframeRef.current;
-    if (!iframe) return;
-    
-    iframe.contentWindow.postMessage({
-      action: command,
-      game: currentGameData?.fileName
-    }, 'http://localhost:3001');
   };
 
   // Обработка клавиатуры
@@ -731,10 +711,11 @@ const GamesCarousel = () => {
                 <i className="fas fa-exchange-alt"></i>
               </button>
               
+              {/* бля */}
               <button 
                 className="folder-btn server-btn"
-                onClick={() => window.open('http://localhost:3001/emulator/index.html', '_blank')}
-                title="Открыть EmulatorJS отдельно"
+                onClick={() => window.open('https://www.emulatorjs.com/', '_blank')}
+                title="Открыть EmulatorJS"
               >
                 <i className="fas fa-external-link-alt"></i>
               </button>
