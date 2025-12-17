@@ -300,76 +300,52 @@ const GamesCarousel = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const launchEmulator = async (game) => {
+  const launchEmulator = (game) => {
     const currentConsole = consoles[selectedConsole];
     if (!currentConsole || !game) return;
     
     const core = getEmulatorCore(game.fileName);
     
-    // Подготавливаем файл для эмулятора
-    let gameFile = game.fileObject;
-    
-    if (!gameFile && gameFiles[game.fileName]) {
-      gameFile = gameFiles[game.fileName];
-    }
-    
-    if (!gameFile) {
-      alert('Файл игры не найден. Пожалуйста, перезагрузите папку с играми.');
-      return;
-    }
-    
-    // Создаем FormData для отправки файла на сервер эмулятора
-    const formData = new FormData();
-    formData.append('rom', gameFile);
-    formData.append('filename', game.fileName);
-    
-    try {
-      // Отправляем файл на сервер эмулятора (порт 3001)
-      const uploadResponse = await fetch('http://localhost:3001/upload', {
-        method: 'POST',
-        body: formData
-      });
+    // Для Vercel - только публичный EmulatorJS
+    if (window.location.hostname.includes('vercel.app') || 
+        window.location.hostname.includes('localhost')) {
       
-      if (!uploadResponse.ok) {
-        throw new Error('Ошибка загрузки файла на сервер эмулятора');
+      // Вариант 1: Просто открыть EmulatorJS
+      window.open('https://www.emulatorjs.com/', '_blank');
+      
+      // Вариант 2: Попробовать загрузить файл напрямую (только для маленьких файлов)
+      if (game.fileObject && game.fileObject.size < 5 * 1024 * 1024) { // 5MB limit
+        try {
+          // Создаем временную ссылку для скачивания
+          const url = URL.createObjectURL(game.fileObject);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = game.fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          
+          alert(`Файл "${game.fileName}" скачан!\n\nТеперь откройте EmulatorJS и выберите этот файл.`);
+        } catch (error) {
+          console.error('Error downloading file:', error);
+          alert(`🎮 Откройте EmulatorJS и выберите файл:\n${game.fileName}`);
+        }
+      } else {
+        alert(`🎮 Откройте EmulatorJS и выберите файл:\n${game.fileName}`);
       }
       
-      const uploadResult = await uploadResponse.json();
-      
-      // Создаем URL для эмулятора с параметрами
-      const emulatorUrl = `http://localhost:3001/emulator/index.html?rom=${encodeURIComponent(uploadResult.filename)}&core=${core}`;
-      
-      setCurrentGameData({
-        gameName: game.name,
-        fileName: game.fileName,
-        core: core,
-        consoleName: currentConsole.name,
-        emulatorUrl: emulatorUrl
-      });
-      
-      setEmulatorUrl(emulatorUrl);
-      setShowEmulator(true);
-      
-      // Входим в полноэкранный режим
-      if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(e => {
-          console.log('Fullscreen error:', e);
-        });
+    } else {
+      // Для локальной разработки (если сервер запущен)
+      try {
+        // Твой старый код для localhost:3001
+        // Но лучше убрать совсем для Vercel
+        console.log('Локальная разработка - нужен сервер на порту 3001');
+        alert('Для локального эмулятора запусти сервер: npm run emulator');
+      } catch (error) {
+        // Fallback на публичный
+        window.open('https://www.emulatorjs.com/', '_blank');
       }
-      
-    } catch (error) {
-      console.error('Error launching emulator:', error);
-      alert(`Ошибка запуска эмулятора: ${error.message}\n\nУбедитесь что сервер эмулятора запущен на порту 3001.`);
-      
-      // Fallback: открываем эмулятор без автоматической загрузки
-      setEmulatorUrl('http://localhost:3001/emulator/index.html');
-      setCurrentGameData({
-        gameName: game.name,
-        fileName: game.fileName,
-        core: core,
-        consoleName: currentConsole.name
-      });
-      setShowEmulator(true);
     }
   };
 
