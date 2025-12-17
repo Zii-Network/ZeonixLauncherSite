@@ -5,7 +5,7 @@ const ThemeContext = createContext();
 export const ThemeProvider = ({ children }) => {
   const themes = {
     dark: {
-      name: 'Темная',
+      name: 'Black',
       class: 'theme-dark',
       bg: '#111',
       primary: '#73b7ff',
@@ -13,7 +13,7 @@ export const ThemeProvider = ({ children }) => {
       liquidGlass: false
     },
     light: {
-      name: 'Светлая',
+      name: 'Light',
       class: 'theme-light',
       bg: '#f5f5f5',
       primary: '#73b7ff',
@@ -21,7 +21,7 @@ export const ThemeProvider = ({ children }) => {
       liquidGlass: false
     },
     cyberpunk: {
-      name: 'Киберпанк',
+      name: 'Cyberpunk',
       class: 'theme-cyberpunk',
       bg: '#0a0a1a',
       primary: '#ff00ff',
@@ -29,7 +29,7 @@ export const ThemeProvider = ({ children }) => {
       liquidGlass: true
     },
     neon: {
-      name: 'Неоновая',
+      name: 'Neon',
       class: 'theme-neon',
       bg: '#000011',
       primary: '#00ff00',

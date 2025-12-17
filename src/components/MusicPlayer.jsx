@@ -26,7 +26,7 @@ const MusicPlayer = () => {
         audioRef.current.pause();
       } else {
         audioRef.current.play().catch(error => {
-          console.error('Ошибка воспроизведения:', error);
+          console.error('Error:', error);
         });
       }
       setIsPlaying(!isPlaying);
@@ -92,7 +92,7 @@ const MusicPlayer = () => {
         onMouseEnter={() => setIsVolumeVisible(true)}
         onMouseLeave={() => setIsVolumeVisible(false)}
       >
-        <div className="volume-label">Громкость</div>
+        <div className="volume-label">Volume</div>
         <div className="volume-indicators">
           <div className="volume-indicator minus">−</div>
           <div className="volume-indicator plus">+</div>

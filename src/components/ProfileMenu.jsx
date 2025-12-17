@@ -16,7 +16,7 @@ const ProfileMenu = ({ onClose, onEditIcons }) => {
     return (
       <div className="profile-menu-overlay" onClick={() => setIsThemeMenuOpen(false)}>
         <div className="theme-menu" onClick={e => e.stopPropagation()}>
-          <h3 style={{ color: 'white', marginBottom: '20px' }}>Выбор темы</h3>
+          <h3 style={{ color: 'white', marginBottom: '20px' }}>Choose a theme</h3>
           
           <div className="theme-grid">
             {Object.entries(themes).map(([key, theme]) => (
@@ -44,7 +44,7 @@ const ProfileMenu = ({ onClose, onEditIcons }) => {
 
           <div className="theme-options">
             <div className="liquid-option">
-              <span>Liquid Glass эффект</span>
+              <span>Liquid Glass w.i.p.</span>
               <div 
                 className={`liquid-toggle ${liquidGlassEnabled ? 'active' : ''}`}
                 onClick={toggleLiquidGlass}
@@ -58,7 +58,7 @@ const ProfileMenu = ({ onClose, onEditIcons }) => {
             className="back-button"
             onClick={() => setIsThemeMenuOpen(false)}
           >
-            Назад
+            Back
           </button>
         </div>
       </div>
@@ -79,16 +79,16 @@ const ProfileMenu = ({ onClose, onEditIcons }) => {
             className="profile-menu-nick"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
-            placeholder="Введите ник"
+            placeholder="Enter your nickname"
           />
         </div>
         
         <div className="profile-menu-settings">
           <div className="settings-item">
-            <span className="settings-item-label">Настройки профиля</span>
+            <span className="settings-item-label">Настройки профиля w.i.p.</span>
           </div>
           <div className="settings-item">
-            <span className="settings-item-label">Статистика</span>
+            <span className="settings-item-label">Stats w.i.p.</span>
           </div>
           
           <div className="settings-item" onClick={() => {
@@ -96,7 +96,7 @@ const ProfileMenu = ({ onClose, onEditIcons }) => {
               onEditIcons(); // Включаем редактирование
             }
           }}>
-            <span className="settings-item-label">Редактировать иконки</span>
+            <span className="settings-item-label">Edit icons</span>
             <div className="theme-arrow">✏️</div>
           </div>
 
@@ -106,12 +106,12 @@ const ProfileMenu = ({ onClose, onEditIcons }) => {
           </div>
           
           <div className="settings-item">
-            <span className="settings-item-label">Выйти</span>
+            <span className="settings-item-label">Exit</span>
           </div>
         </div>
         
         <button className="profile-menu-close" onClick={onClose}>
-          Закрыть
+          Close
         </button>
       </div>
     </div>

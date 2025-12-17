@@ -41,7 +41,6 @@ const TopBar = ({ onProfileClick, onFriendsClick }) => {
           onClick={onProfileClick}
           style={{ backgroundImage: "url('/icons_Zii/zinex.gif')" }}
         />
-        {/* УДАЛИЛИ КНОПКУ 🎨 */}
       </div>
     </div>
   );
