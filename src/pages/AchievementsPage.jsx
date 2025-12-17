@@ -48,7 +48,7 @@ const AchievementsPage = () => {
                 await fetchRecentGames(username, apiKey);
             }
         } catch (err) {
-            setError('Ошибка входа. Проверьте логин и API ключ.');
+            setError('Login error. Check your login and API key.');
             console.error(err);
         } finally {
             setLoading(false);
@@ -118,20 +118,20 @@ const AchievementsPage = () => {
                                 id="username"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                placeholder="Введите ваш username"
+                                placeholder="Enter your username"
                                 required
                                 disabled={loading}
                             />
                         </div>
                         
                         <div className="form-group">
-                            <label htmlFor="apiKey">API ключ:</label>
+                            <label htmlFor="apiKey">API key:</label>
                             <input
                                 type="password"
                                 id="apiKey"
                                 value={apiKey}
                                 onChange={(e) => setApiKey(e.target.value)}
-                                placeholder="Введите ваш API ключ"
+                                placeholder="Enter your API key"
                                 required
                                 disabled={loading}
                             />
