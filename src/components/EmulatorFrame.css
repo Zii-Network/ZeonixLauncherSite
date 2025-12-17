@@ -1,0 +1,322 @@
+.emulator-frame-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.emulator-header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: white;
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid #0f3460;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+}
+
+.emulator-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.emulator-title i {
+  font-size: 22px;
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
+.title-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.game-name {
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.console-name {
+  font-size: 14px;
+  color: #aaa;
+  margin-top: 2px;
+}
+
+.emulator-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.control-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
+}
+
+.restart-btn {
+  background: rgba(255, 75, 75, 0.2);
+  border-color: rgba(255, 75, 75, 0.3);
+}
+
+.restart-btn:hover {
+  background: rgba(255, 75, 75, 0.3);
+  border-color: rgba(255, 75, 75, 0.5);
+}
+
+.close-emulator-btn {
+  background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin-left: 10px;
+}
+
+.close-emulator-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 75, 75, 0.4);
+}
+
+.emulator-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+
+.emulator-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: white;
+  z-index: 1;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 5px solid rgba(255, 255, 255, 0.1);
+  border-top: 5px solid #4dabf7;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.emulator-loading p {
+  font-size: 18px;
+  margin: 10px 0;
+}
+
+.loading-sub {
+  font-size: 14px;
+  color: #aaa;
+}
+
+.emulator-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #000;
+  position: relative;
+  z-index: 2;
+}
+
+.emulator-footer {
+  background: rgba(0, 0, 0, 0.9);
+  padding: 15px 24px;
+  border-top: 2px solid #333;
+  color: #aaa;
+  font-size: 14px;
+}
+
+.footer-info {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-item i {
+  color: #4dabf7;
+}
+
+.footer-tips {
+  text-align: center;
+  padding-top: 10px;
+  border-top: 1px solid #333;
+}
+
+.tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #ffd43b;
+}
+
+.emulator-error-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.emulator-error {
+  background: linear-gradient(135deg, #2d3436 0%, #2d3436 100%);
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  max-width: 500px;
+  width: 90%;
+  border: 2px solid #ff6b6b;
+  box-shadow: 0 20px 40px rgba(255, 107, 107, 0.2);
+}
+
+.emulator-error h3 {
+  color: #ff6b6b;
+  font-size: 24px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.emulator-error p {
+  color: #ddd;
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+.error-solutions {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 20px;
+  margin: 25px 0;
+  text-align: left;
+}
+
+.error-solutions ul {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 10px;
+}
+
+.error-solutions li {
+  color: #aaa;
+  padding: 8px 0;
+  padding-left: 25px;
+  position: relative;
+}
+
+.error-solutions li:before {
+  content: "•";
+  color: #4dabf7;
+  font-size: 20px;
+  position: absolute;
+  left: 0;
+  top: 5px;
+}
+
+.error-btn {
+  background: linear-gradient(135deg, #4dabf7 0%, #339af0 100%);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+.error-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(77, 171, 247, 0.4);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .emulator-header {
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px;
+  }
+  
+  .emulator-title {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .emulator-controls {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .footer-info {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .emulator-error {
+    padding: 25px;
+  }
+}

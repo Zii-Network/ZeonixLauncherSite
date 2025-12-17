@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './GamesCarousel.css';
+const [emulatorReady, setEmulatorReady] = useState(false);
 
 const GamesCarousel = () => {
   // Все возможные консоли
@@ -302,49 +303,33 @@ const GamesCarousel = () => {
     const currentConsole = consoles[selectedConsole];
     if (!currentConsole || !game) return;
     
-    const core = getEmulatorCore(game.fileName);
+    // Проверка поддержки браузером
+    if (!game.fileObject) {
+      alert('Файл игры не загружен. Попробуйте перезагрузить библиотеку (кнопка обновления).');
+      return;
+    }
     
-    // Для Vercel - только публичный EmulatorJS
-    if (window.location.hostname.includes('vercel.app') || 
-        window.location.hostname.includes('localhost')) {
-      
-      // Вариант 1: Просто открыть EmulatorJS
-      window.open('https://www.emulatorjs.com/', '_blank');
-      
-      // Вариант 2: Попробовать загрузить файл напрямую (только для маленьких файлов)
-      if (game.fileObject && game.fileObject.size < 5 * 1024 * 1024) { // 5MB limit
-        try {
-          // Создаем временную ссылку для скачивания
-          const url = URL.createObjectURL(game.fileObject);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = game.fileName;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          
-          alert(`Файл "${game.fileName}" скачан!\n\nТеперь откройте EmulatorJS и выберите этот файл.`);
-        } catch (error) {
-          console.error('Error downloading file:', error);
-          alert(`🎮 Откройте EmulatorJS и выберите файл:\n${game.fileName}`);
-        }
-      } else {
-        alert(`🎮 Откройте EmulatorJS и выберите файл:\n${game.fileName}`);
-      }
-      
-    } else {
-      // Для локальной разработки (если сервер запущен)
-      try {
-        // Твой старый код для localhost:3001
-        // Но лучше убрать совсем для Vercel
-        console.log('Локальная разработка - нужен сервер на порту 3001');
-        alert('Для локального эмулятора запусти сервер: npm run emulator');
-      } catch (error) {
-        // Fallback на публичный
-        window.open('https://www.emulatorjs.com/', '_blank');
+    // Проверка размера (ограничение Vercel + браузера)
+    const maxSize = 25 * 1024 * 1024; // 25MB для стабильной работы
+    if (game.fileObject.size > maxSize) {
+      alert(`Файл слишком большой (${game.fileSize}).\n\nДля стабильной работы на Vercel рекомендуемый размер до 25MB.\n\nМожно:\n1. Использовать сжатые версии (.cso для PSP, .zip)\n2. Разбить на части\n3. Использовать локальный сервер для больших файлов`);
+      return;
+    }
+    
+    // Проверка формата
+    const ext = game.fileName.toLowerCase().split('.').pop();
+    const unsupported = ['iso', 'cso', 'pbp', 'bin', 'img']; // Проблемные форматы
+    if (unsupported.includes(ext) && game.fileObject.size > 10 * 1024 * 1024) {
+      if (!window.confirm(`Формат .${ext} может работать нестабильно в браузере.\nПродолжить?`)) {
+        return;
       }
     }
+    
+    setCurrentGameForEmulator({
+      game: game,
+      consoleInfo: currentConsole
+    });
+    setShowEmulator(true);
   };
 
   const handleGameClick = (game) => {
@@ -554,6 +539,7 @@ const GamesCarousel = () => {
   };
 
   return (
+    
     <div className="games-carousel-wrapper">
       {/* Скрытый input для выбора папки */}
       <input
@@ -810,7 +796,20 @@ const GamesCarousel = () => {
           </div>
         </>
       )}
-
+      
+      <div className="vercel-warning">
+        <div className="warning-header">
+          <i className="fas fa-exclamation-triangle"></i>
+          <span>Важно для Vercel:</span>
+        </div>
+        <div className="warning-content">
+          <p>• Файлы хранятся в браузере (LocalStorage)</p>
+          <p>• Максимальный размер файла: 25MB</p>
+          <p>• Для больших файлов используйте .zip архивы</p>
+          <p>• Сохранения работают в текущем браузере</p>
+        </div>
+      </div>
+      
       {/* Индикатор загрузки */}
       {isLoading && (
         <div className="loading-overlay">
