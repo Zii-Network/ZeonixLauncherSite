@@ -133,6 +133,15 @@ const GamesCarousel = () => {
   };
 
   useEffect(() => {
+  return () => {
+    // Очищаем blob URLs при закрытии страницы
+    if (currentGameForEmulator?.game?.fileObject) {
+      // URL уже будет очищен в EmulatorFrame
+    }
+  };
+}, [currentGameForEmulator]);
+
+  useEffect(() => {
     // Загружаем сохраненные игры
     const savedGames = JSON.parse(localStorage.getItem('userGames') || '{}');
     const savedConsoles = JSON.parse(localStorage.getItem('userConsoles') || '[]');
