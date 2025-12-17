@@ -85,7 +85,7 @@ const ProfileMenu = ({ onClose, onEditIcons }) => {
         
         <div className="profile-menu-settings">
           <div className="settings-item">
-            <span className="settings-item-label">Настройки профиля w.i.p.</span>
+            <span className="settings-item-label">Profile settings w.i.p.</span>
           </div>
           <div className="settings-item">
             <span className="settings-item-label">Stats w.i.p.</span>

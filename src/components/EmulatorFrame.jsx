@@ -17,7 +17,7 @@ const EmulatorFrame = ({ game, consoleInfo, onClose }) => {
         setError(null);
       } catch (err) {
         console.error('Error creating blob URL:', err);
-        setError('Не удалось загрузить файл игры');
+        setError('Failed to load game file');
       }
     }
 
@@ -172,7 +172,7 @@ const EmulatorFrame = ({ game, consoleInfo, onClose }) => {
         setIsLoading(false);
       }
       if (event.data.type === 'GAME_STARTED') {
-        console.log('Игра запущена');
+        console.log('The game has started');
       }
     };
 
@@ -184,10 +184,10 @@ const EmulatorFrame = ({ game, consoleInfo, onClose }) => {
     return (
       <div className="emulator-error-overlay">
         <div className="emulator-error">
-          <h3><i className="fas fa-exclamation-triangle"></i> Ошибка</h3>
+          <h3><i className="fas fa-exclamation-triangle"></i> Error</h3>
           <p>{error}</p>
           <button onClick={onClose} className="error-btn">
-            <i className="fas fa-arrow-left"></i> Вернуться
+            <i className="fas fa-arrow-left"></i> Return
           </button>
         </div>
       </div>
@@ -198,18 +198,18 @@ const EmulatorFrame = ({ game, consoleInfo, onClose }) => {
     return (
       <div className="emulator-error-overlay">
         <div className="emulator-error">
-          <h3><i className="fas fa-ban"></i> Формат не поддерживается</h3>
-          <p>Формат файла <strong>.{game?.fileName?.split('.').pop()}</strong> не поддерживается в браузере.</p>
+          <h3><i className="fas fa-ban"></i> The format is not supported</h3>
+          <p>The file format <strong>.{game?.fileName?.split('.').pop()}</strong> is not supported by the browser.</p>
           <div className="error-solutions">
-            <p>Попробуйте:</p>
+            <p>Try:</p>
             <ul>
-              <li>Сконвертировать в другой формат</li>
-              <li>Использовать настольный эмулятор</li>
-              <li>Выбрать другую игру</li>
+            <li>Convert to another format</li>
+            <li>Use a desktop emulator</li>
+            <li>Select a different game</li>
             </ul>
           </div>
           <button onClick={onClose} className="error-btn">
-            <i className="fas fa-arrow-left"></i> Вернуться
+            <i className="fas fa-arrow-left"></i> Return
           </button>
         </div>
       </div>
@@ -231,33 +231,33 @@ const EmulatorFrame = ({ game, consoleInfo, onClose }) => {
           <button 
             className="control-btn" 
             onClick={() => iframeRef.current?.contentWindow?.EJS_toggleFullscreen?.()}
-            title="Полный экран (F11)"
+            title="Full Screen (F11)"
           >
             <i className="fas fa-expand"></i>
           </button>
           <button 
             className="control-btn" 
             onClick={() => iframeRef.current?.contentWindow?.EJS_saveState?.()}
-            title="Сохранить (F5)"
+            title="Save (F5)"
           >
             <i className="fas fa-save"></i>
           </button>
           <button 
             className="control-btn" 
             onClick={() => iframeRef.current?.contentWindow?.EJS_loadState?.()}
-            title="Загрузить (F7)"
+            title="Load (F7)"
           >
             <i className="fas fa-upload"></i>
           </button>
           <button 
             className="control-btn restart-btn"
             onClick={() => iframeRef.current?.contentWindow?.EJS_resetGame?.()}
-            title="Перезапуск (F1)"
+            title="Reload (F1)"
           >
             <i className="fas fa-redo"></i>
           </button>
           <button className="close-emulator-btn" onClick={onClose}>
-            <i className="fas fa-times"></i> Выйти
+            <i className="fas fa-times"></i> Exit
           </button>
         </div>
       </div>
@@ -266,8 +266,8 @@ const EmulatorFrame = ({ game, consoleInfo, onClose }) => {
         {isLoading && (
           <div className="emulator-loading">
             <div className="loading-spinner"></div>
-            <p>Загрузка эмулятора...</p>
-            <p className="loading-sub">Пожалуйста, подождите</p>
+            <p>Loading emulator...</p>
+            <p className="loading-sub">Please wait</p>
           </div>
         )}
         
@@ -287,22 +287,22 @@ const EmulatorFrame = ({ game, consoleInfo, onClose }) => {
         <div className="footer-info">
           <div className="info-item">
             <i className="fas fa-keyboard"></i>
-            <span>Управление: WASD/Стрелки + ZXCV</span>
+            <span>Controls: </span>
           </div>
           <div className="info-item">
             <i className="fas fa-gamepad"></i>
-            <span>Геймпад: подключите и нажмите START</span>
+            <span>Gamepad: </span>
           </div>
           <div className="info-item">
             <i className="fas fa-save"></i>
-            <span>Сохранения: автоматически в браузере</span>
+            <span>Savings: automatically in the browser</span>
           </div>
         </div>
         
         <div className="footer-tips">
           <span className="tip">
             <i className="fas fa-lightbulb"></i>
-            Советы: F11 - полный экран, ESC - меню
+            Tips: F11 - full screen, ESC - menu
           </span>
         </div>
       </div>

@@ -251,7 +251,7 @@ const GamesCarousel = () => {
       saveToStorage(consolesWithGames, filesMap, folderPath);
     } else {
       setTimeout(() => {
-        alert('Не найдено поддерживаемых игр в выбранной папке.\nПоддерживаемые форматы: .gba, .gb, .gbc, .iso, .nds и другие.');
+        alert('No supported games were found in the selected folder.\nSupported formats: .gba, .gb, .gbc, .iso, .nds и другие.');
         setShowFolderSelector(true);
       }, 100);
     }
@@ -274,13 +274,13 @@ const GamesCarousel = () => {
     
     // Проверяем наличие файла
     if (!game.fileObject) {
-      alert('Файл игры не загружен. Попробуйте перезагрузить библиотеку.');
+      alert('The game file did not load. Try reloading your library.');
       return;
     }
     
     // Проверяем размер файла
     if (game.fileObject.size > 25 * 1024 * 1024) {
-      if (!window.confirm(`Файл игры большой (${game.fileSize}).\nЭмуляция может работать медленно. Продолжить?`)) {
+      if (!window.confirm(`The game file is large (${game.fileSize}).\nEmulation may be slow. Continue?`)) {
         return;
       }
     }
@@ -322,14 +322,14 @@ const GamesCarousel = () => {
       
       setConsoles(restoredConsoles);
       setGameFiles(savedGameFiles);
-      alert('Библиотека обновлена!');
+      alert('The library has been updated!');
     } else {
-      alert('Нет сохраненной папки для перезагрузки.');
+      alert('There is no saved folder for reboot.');
     }
   };
 
   const handleResetLibrary = () => {
-    if (window.confirm('Удалить все загруженные игры и выбрать другую папку?')) {
+    if (window.confirm('Delete all downloaded games and choose another folder?')) {
       localStorage.removeItem('userGames');
       localStorage.removeItem('userConsoles');
       localStorage.removeItem('currentFolderPath');
@@ -441,15 +441,15 @@ const GamesCarousel = () => {
           <div className="controls-info">
             <div className="info-item">
               <i className="fas fa-keyboard"></i>
-              <span>Управление: Стрелки + Z/X/A/S</span>
+              <span>Controls: </span>
             </div>
             <div className="info-item">
               <i className="fas fa-gamepad"></i>
-              <span>Геймпады поддерживаются</span>
+              <span>Gamepads are supported</span>
             </div>
             <div className="info-item">
               <i className="fas fa-save"></i>
-              <span>Сохранения в браузере</span>
+              <span>Saves in the browser</span>
             </div>
           </div>
         </div>
@@ -536,21 +536,21 @@ const GamesCarousel = () => {
               <i className="fas fa-folder-open"></i>
             </div>
             
-            <h1 className="selector-title">Выберите папку с играми</h1>
+            <h1 className="selector-title">Select the folder with games</h1>
             
             <p className="selector-description">
-              Выберите папку, содержащую ваши игровые файлы. Система автоматически определит консоли и отсортирует игры по форматам.
+              Select the folder containing your game files. The system will automatically detect consoles and sort games by format.
             </p>
             
             <button 
               className="select-folder-btn"
               onClick={handleSelectFolderClick}
             >
-              <i className="fas fa-folder"></i> Выбрать папку
+              <i className="fas fa-folder"></i> Select folder
             </button>
             
             <div className="supported-info">
-              <h3>Поддерживаемые форматы:</h3>
+              <h3>Supported formats:</h3>
               <div className="formats-grid">
                 <div className="format-category">
                   <h4>Game Boy Advance</h4>
@@ -573,7 +573,7 @@ const GamesCarousel = () => {
                   <div className="format-list">.md .gen .smd .zip</div>
                 </div>
                 <div className="format-category">
-                  <h4>И другие...</h4>
+                  <h4>And others...</h4>
                   <div className="format-list">.ngp .ngc .cue .bin .z64 .n64</div>
                 </div>
               </div>
@@ -585,9 +585,9 @@ const GamesCarousel = () => {
           {/* Левая панель - консоли */}
           <div className="carousel-panel consoles-panel">
             <div className="panel-header">
-              <h2 className="panel-title">Консоли</h2>
+              <h2 className="panel-title">Consoles</h2>
               <div className="panel-subtitle">
-                {consoles.length} найдено • Стрелки ↑ ↓
+                {consoles.length} found • Arrows ↑ ↓
               </div>
             </div>
             
@@ -681,7 +681,7 @@ const GamesCarousel = () => {
                 </span>
               </h2>
               <div className="panel-subtitle">
-                Стрелки ↑ ↓ для выбора • Enter для запуска
+                Arrows ↑ ↓ to select • Enter to run
               </div>
             </div>
           
@@ -707,7 +707,7 @@ const GamesCarousel = () => {
                         <div className="slide-info">
                           <div className="slide-title">{game.name}</div>
                           <div className="slide-time">
-                            <i className="fas fa-clock"></i> Не играно
+                            <i className="fas fa-clock"></i> Not played
                           </div>
                           
                           <div className="game-details">
@@ -736,8 +736,8 @@ const GamesCarousel = () => {
                     <div className="empty-icon">
                       <i className="fas fa-gamepad"></i>
                     </div>
-                    <h3>Нет игр в этой консоли</h3>
-                    <p>В выбранной папке не найдено игр для {consoles[selectedConsole]?.name}</p>
+                    <h3>There are no games on this console.</h3>
+                    <p>No games were found in the selected folder for {consoles[selectedConsole]?.name}</p>
                   </div>
                 )}
               </div>
@@ -763,9 +763,9 @@ const GamesCarousel = () => {
         <div className="loading-overlay">
           <div className="loading-spinner"></div>
           <div className="loading-text">
-            Сканирование папки...
+            Scanning folder...
             <div className="loading-subtext">
-              Определение консолей и сортировка игр
+              Identifying consoles and sorting games
             </div>
           </div>
         </div>
