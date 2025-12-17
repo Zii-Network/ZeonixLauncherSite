@@ -1,93 +1,163 @@
 import React, { useState, useEffect, useRef } from 'react';
+import './GamesCarousel.css';
 
 const GamesCarousel = () => {
+  // Все возможные консоли
   const allConsoles = [
     {
       id: "gba",
       name: "Game Boy Advance",
-      icon: "fas fa-gamepad",
+      icon: "fas fa-gameboy",
       color: "#73b7ff",
-      fileExtensions: ['gba', 'gb', 'gbc']
-    },
-    {
-      id: "nes",
-      name: "Nintendo NES",
-      icon: "fas fa-gamepad",
-      color: "#ff3366",
-      fileExtensions: ['nes', 'fds']
-    },
-    {
-      id: "snes",
-      name: "Super Nintendo",
-      icon: "fas fa-gamepad",
-      color: "#9966ff",
-      fileExtensions: ['sfc', 'smc']
-    },
-    {
-      id: "genesis",
-      name: "Sega Genesis",
-      icon: "fas fa-gamepad",
-      color: "#ffcc00",
-      fileExtensions: ['md', 'gen', 'smd']
-    },
-    {
-      id: "n64",
-      name: "Nintendo 64",
-      icon: "fas fa-gamepad",
-      color: "#ff9900",
-      fileExtensions: ['z64', 'n64', 'v64']
+      fileExtensions: ['gba', 'gb', 'gbc', 'zip', '7z']
     },
     {
       id: "psp",
       name: "PlayStation Portable",
       icon: "fas fa-gamepad",
       color: "#ff6b3d",
-      fileExtensions: ['iso', 'cso', 'pbp']
+      fileExtensions: ['iso', 'cso', 'pbp', 'bin']
+    },
+    {
+      id: "ngpc",
+      name: "Neo Geo Pocket",
+      icon: "fas fa-gamepad",
+      color: "#50ff50",
+      fileExtensions: ['ngp', 'ngc', 'zip']
+    },
+    {
+      id: "nds",
+      name: "Nintendo DS",
+      icon: "fas fa-gamepad",
+      color: "#ff66cc",
+      fileExtensions: ['nds', 'zip']
+    },
+    {
+      id: "ps1",
+      name: "PlayStation 1",
+      icon: "fas fa-playstation",
+      color: "#9966ff",
+      fileExtensions: ['cue', 'bin', 'img']
+    },
+    {
+      id: "genesis",
+      name: "Sega Genesis",
+      icon: "fas fa-gamepad",
+      color: "#ffcc00",
+      fileExtensions: ['md', 'gen', 'smd', 'zip']
+    },
+    {
+      id: "snes",
+      name: "Super Nintendo",
+      icon: "fas fa-gamepad",
+      color: "#ff3366",
+      fileExtensions: ['sfc', 'smc', 'zip']
+    },
+    {
+      id: "n64",
+      name: "Nintendo 64",
+      icon: "fas fa-gamepad",
+      color: "#ff9900",
+      fileExtensions: ['z64', 'v64', 'n64', 'zip']
+    },
+    {
+      id: "ps2",
+      name: "PlayStation 2",
+      icon: "fas fa-playstation",
+      color: "#0066cc",
+      fileExtensions: ['iso', 'bin', 'img']
+    },
+    {
+      id: "dreamcast",
+      name: "Sega Dreamcast",
+      icon: "fas fa-gamepad",
+      color: "#00cc99",
+      fileExtensions: ['cdi', 'gdi', 'iso']
     }
   ];
 
   const [consoles, setConsoles] = useState([]);
+  const [currentFolderPath, setCurrentFolderPath] = useState('');
   const [selectedConsole, setSelectedConsole] = useState(0);
   const [selectedGame, setSelectedGame] = useState(0);
-  const [showFolderSelector, setShowFolderSelector] = useState(true);
-  const [showEmulator, setShowEmulator] = useState(false);
-  const [currentGameData, setCurrentGameData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentFolderPath, setCurrentFolderPath] = useState('');
+  const [showFolderSelector, setShowFolderSelector] = useState(true);
+  const [currentGameData, setCurrentGameData] = useState(null);
+  const [emulatorUrl, setEmulatorUrl] = useState('');
   
   const fileInputRef = useRef(null);
   const emulatorIframeRef = useRef(null);
 
-  // Определение консоли по расширению
+  // Определение консоли по расширению файла
   const getConsoleByExtension = (filename) => {
     const ext = filename.toLowerCase().split('.').pop();
+    
     for (const console of allConsoles) {
       if (console.fileExtensions.includes(ext)) {
         return console.id;
       }
     }
+    
     return null;
   };
 
-  // Загрузка сохраненных игр
+  // Определение core EmulatorJS
+  const getEmulatorCore = (filename) => {
+    const ext = filename.toLowerCase().split('.').pop();
+    const coreMap = {
+      // Nintendo
+      'gba': 'gba', 'gb': 'gb', 'gbc': 'gb',
+      'nds': 'nds',
+      'nes': 'nes', 'fds': 'nes',
+      'sfc': 'snes', 'smc': 'snes',
+      'z64': 'n64', 'n64': 'n64', 'v64': 'n64',
+      
+      // Sega
+      'md': 'segaMD', 'gen': 'segaMD', 'smd': 'segaMD',
+      
+      // Sony
+      'iso': 'psp', 'cso': 'psp', 'pbp': 'psp',
+      'bin': 'psx', 'cue': 'psx', 'img': 'psx',
+      
+      // Другие
+      'ngp': 'ngp', 'ngc': 'ngp',
+      'pce': 'pce',
+      'ws': 'ws', 'wsc': 'ws',
+      'col': 'coleco', 'cv': 'coleco',
+      'd64': 'vice_x64sc',
+      'zip': 'arcade'
+    };
+    
+    return coreMap[ext] || 'nes';
+  };
+
   useEffect(() => {
+    // Загружаем сохраненные игры
     const savedGames = JSON.parse(localStorage.getItem('userGames') || '{}');
     const savedConsoles = JSON.parse(localStorage.getItem('userConsoles') || '[]');
     const savedFolderPath = localStorage.getItem('currentFolderPath') || '';
-    
+    const savedGameFiles = JSON.parse(localStorage.getItem('gameFiles') || '{}');
+  
     if (savedConsoles.length > 0 && Object.keys(savedGames).length > 0) {
       const restoredConsoles = savedConsoles.map(consoleId => {
         const consoleInfo = allConsoles.find(c => c.id === consoleId);
+        const gamesWithData = (savedGames[consoleId] || []).map(game => ({
+          ...game,
+          fileObject: savedGameFiles[game.fileName] ? 
+            dataURLtoFile(savedGameFiles[game.fileName], game.fileName) : null
+        }));
+        
         return {
           ...consoleInfo,
-          games: savedGames[consoleId] || []
+          games: gamesWithData
         };
       });
-      
+    
       setConsoles(restoredConsoles);
       setCurrentFolderPath(savedFolderPath);
+      setGameFiles(savedGameFiles);
       setShowFolderSelector(false);
-      
+    
       if (restoredConsoles.length > 0) {
         setSelectedConsole(0);
         setSelectedGame(0);
@@ -95,21 +165,58 @@ const GamesCarousel = () => {
     }
   }, []);
 
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  // Функция для преобразования dataURL обратно в File
+  const dataURLtoFile = (dataurl, filename) => {
+    const arr = dataurl.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    
+    while(n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    
+    return new File([u8arr], filename, {type: mime});
   };
 
-  const fileToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+  const saveToStorage = (consolesWithGames, filesMap, folderPath = '') => {
+    const games = {};
+    const consoleIds = [];
+    const gameFilesData = {};
+  
+    consolesWithGames.forEach(console => {
+      if (console.games.length > 0) {
+        games[console.id] = console.games.map(game => ({
+          id: game.id,
+          name: game.name,
+          fileName: game.fileName,
+          fileSize: game.fileSize,
+          uploadDate: game.uploadDate,
+          consoleId: game.consoleId
+        }));
+        consoleIds.push(console.id);
+      }
     });
+  
+    // Сохраняем файлы как dataURL
+    Object.keys(filesMap).forEach(fileName => {
+      const file = filesMap[fileName];
+      if (file && file.size < 10 * 1024 * 1024) { // Ограничение 10MB
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          gameFilesData[fileName] = e.target.result;
+          localStorage.setItem('gameFiles', JSON.stringify(gameFilesData));
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  
+    localStorage.setItem('userGames', JSON.stringify(games));
+    localStorage.setItem('userConsoles', JSON.stringify(consoleIds));
+    if (folderPath) {
+      localStorage.setItem('currentFolderPath', folderPath);
+    }
   };
 
   const handleFolderSelect = async (event) => {
@@ -122,19 +229,24 @@ const GamesCarousel = () => {
     const folderPath = files[0]?.webkitRelativePath?.split('/')[0] || 'Выбранная папка';
     setCurrentFolderPath(folderPath);
 
+    // Группируем файлы по консолям и сохраняем файлы
     const gamesByConsole = {};
+    const filesMap = {};
     
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const consoleId = getConsoleByExtension(file.name);
       
-      if (consoleId && file.size < 10 * 1024 * 1024) { // 10MB лимит
+      if (consoleId) {
         if (!gamesByConsole[consoleId]) {
           gamesByConsole[consoleId] = [];
         }
         
+        const consoleInfo = allConsoles.find(c => c.id === consoleId);
         const gameName = file.name.replace(/\.[^/.]+$/, "");
-        const base64Data = await fileToBase64(file);
+        
+        // Сохраняем файл
+        filesMap[file.name] = file;
         
         gamesByConsole[consoleId].push({
           id: `${consoleId}_${Date.now()}_${i}`,
@@ -143,11 +255,12 @@ const GamesCarousel = () => {
           fileSize: formatFileSize(file.size),
           uploadDate: new Date().toLocaleDateString(),
           consoleId: consoleId,
-          data: base64Data
+          fileObject: file
         });
       }
     }
 
+    // Создаем массив консолей с играми
     const consolesWithGames = Object.keys(gamesByConsole).map(consoleId => {
       const consoleInfo = allConsoles.find(c => c.id === consoleId);
       return {
@@ -156,29 +269,19 @@ const GamesCarousel = () => {
       };
     });
 
+    // Сортируем по количеству игр
     consolesWithGames.sort((a, b) => b.games.length - a.games.length);
+
     setConsoles(consolesWithGames);
-    
-    // Сохранение в localStorage
-    const gamesToSave = {};
-    const consoleIds = [];
-    consolesWithGames.forEach(console => {
-      if (console.games.length > 0) {
-        gamesToSave[console.id] = console.games;
-        consoleIds.push(console.id);
-      }
-    });
-    
-    localStorage.setItem('userGames', JSON.stringify(gamesToSave));
-    localStorage.setItem('userConsoles', JSON.stringify(consoleIds));
-    localStorage.setItem('currentFolderPath', folderPath);
+    setGameFiles(filesMap);
     
     if (consolesWithGames.length > 0) {
       setSelectedConsole(0);
       setSelectedGame(0);
+      saveToStorage(consolesWithGames, filesMap, folderPath);
     } else {
       setTimeout(() => {
-        alert('Не найдено поддерживаемых игр в выбранной папке.\nПоддерживаемые форматы: .gba, .gb, .gbc, .nes, .snes и другие.');
+        alert('Не найдено поддерживаемых игр в выбранной папке.\nПоддерживаемые форматы: .gba, .gb, .gbc, .iso, .nds и другие.');
         setShowFolderSelector(true);
       }, 100);
     }
@@ -187,35 +290,97 @@ const GamesCarousel = () => {
     event.target.value = '';
   };
 
-  const handleGameClick = (game) => {
-    setCurrentGameData({
-      gameName: game.name,
-      fileName: game.fileName,
-      consoleName: consoles[selectedConsole]?.name,
-      consoleColor: consoles[selectedConsole]?.color,
-      data: game.data
-    });
-    setShowEmulator(true);
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const closeEmulator = () => {
-    setShowEmulator(false);
-    setCurrentGameData(null);
+  const launchEmulator = (game) => {
+    const currentConsole = consoles[selectedConsole];
+    if (!currentConsole || !game) return;
     
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
+    const core = getEmulatorCore(game.fileName);
+    
+    // Для Vercel - только публичный EmulatorJS
+    if (window.location.hostname.includes('vercel.app') || 
+        window.location.hostname.includes('localhost')) {
+      
+      // Вариант 1: Просто открыть EmulatorJS
+      window.open('https://www.emulatorjs.com/', '_blank');
+      
+      // Вариант 2: Попробовать загрузить файл напрямую (только для маленьких файлов)
+      if (game.fileObject && game.fileObject.size < 5 * 1024 * 1024) { // 5MB limit
+        try {
+          // Создаем временную ссылку для скачивания
+          const url = URL.createObjectURL(game.fileObject);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = game.fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          
+          alert(`Файл "${game.fileName}" скачан!\n\nТеперь откройте EmulatorJS и выберите этот файл.`);
+        } catch (error) {
+          console.error('Error downloading file:', error);
+          alert(`🎮 Откройте EmulatorJS и выберите файл:\n${game.fileName}`);
+        }
+      } else {
+        alert(`🎮 Откройте EmulatorJS и выберите файл:\n${game.fileName}`);
+      }
+      
+    } else {
+      // Для локальной разработки (если сервер запущен)
+      try {
+        // Твой старый код для localhost:3001
+        // Но лучше убрать совсем для Vercel
+        console.log('Локальная разработка - нужен сервер на порту 3001');
+        alert('Для локального эмулятора запусти сервер: npm run emulator');
+      } catch (error) {
+        // Fallback на публичный
+        window.open('https://www.emulatorjs.com/', '_blank');
+      }
     }
   };
 
-  const downloadGame = () => {
-    if (!currentGameData) return;
+  const handleGameClick = (game) => {
+    launchEmulator(game);
+  };
+
+  const handleSelectFolderClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const reloadCurrentFolder = async () => {
+    const savedGames = JSON.parse(localStorage.getItem('userGames') || '{}');
+    const savedConsoles = JSON.parse(localStorage.getItem('userConsoles') || '[]');
+    const savedGameFiles = JSON.parse(localStorage.getItem('gameFiles') || '{}');
     
-    const link = document.createElement('a');
-    link.href = currentGameData.data;
-    link.download = currentGameData.fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (savedConsoles.length > 0 && Object.keys(savedGames).length > 0) {
+      const restoredConsoles = savedConsoles.map(consoleId => {
+        const consoleInfo = allConsoles.find(c => c.id === consoleId);
+        const gamesWithData = (savedGames[consoleId] || []).map(game => ({
+          ...game,
+          fileObject: savedGameFiles[game.fileName] ? 
+            dataURLtoFile(savedGameFiles[game.fileName], game.fileName) : null
+        }));
+        
+        return {
+          ...consoleInfo,
+          games: gamesWithData
+        };
+      });
+      
+      setConsoles(restoredConsoles);
+      setGameFiles(savedGameFiles);
+      alert('Библиотека обновлена!');
+    } else {
+      alert('Нет сохраненной папки для перезагрузки.');
+    }
   };
 
   const handleResetLibrary = () => {
@@ -223,7 +388,9 @@ const GamesCarousel = () => {
       localStorage.removeItem('userGames');
       localStorage.removeItem('userConsoles');
       localStorage.removeItem('currentFolderPath');
+      localStorage.removeItem('gameFiles');
       setConsoles([]);
+      setGameFiles({});
       setCurrentFolderPath('');
       setShowFolderSelector(true);
       setSelectedConsole(0);
@@ -231,32 +398,41 @@ const GamesCarousel = () => {
     }
   };
 
-  const reloadCurrentFolder = () => {
-    const savedGames = JSON.parse(localStorage.getItem('userGames') || '{}');
-    const savedConsoles = JSON.parse(localStorage.getItem('userConsoles') || '[]');
+  const closeEmulator = () => {
+    setShowEmulator(false);
+    setCurrentGameData(null);
+    setEmulatorUrl('');
     
-    if (savedConsoles.length > 0 && Object.keys(savedGames).length > 0) {
-      const restoredConsoles = savedConsoles.map(consoleId => {
-        const consoleInfo = allConsoles.find(c => c.id === consoleId);
-        return {
-          ...consoleInfo,
-          games: savedGames[consoleId] || []
-        };
-      });
-      
-      setConsoles(restoredConsoles);
-      alert('Библиотека обновлена!');
-    } else {
-      alert('Нет сохраненной папки для перезагрузки.');
+    // Выходим из полноэкранного режима
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
     }
   };
 
-  // Навигация клавиатурой
+  // Обработка клавиатуры
   useEffect(() => {
     if (showEmulator) {
       const handleEmulatorKeyDown = (e) => {
-        if (e.key === 'Escape') {
-          closeEmulator();
+        switch(e.key) {
+          case 'Escape':
+            closeEmulator();
+            break;
+          case 'F5':
+            e.preventDefault();
+            sendEmulatorCommand('saveState');
+            break;
+          case 'F7':
+            e.preventDefault();
+            sendEmulatorCommand('loadState');
+            break;
+          case 'F1':
+            e.preventDefault();
+            sendEmulatorCommand('reset');
+            break;
+          case ' ':
+            e.preventDefault();
+            sendEmulatorCommand('pause');
+            break;
         }
       };
       
@@ -268,45 +444,54 @@ const GamesCarousel = () => {
 
     const handleKeyDown = (e) => {
       if (e.key === 'ArrowDown') {
-        const games = consoles[selectedConsole]?.games || [];
-        if (games.length > 0) {
-          setSelectedGame((prev) => (prev + 1) % games.length);
+        if (document.querySelector('.games-panel .carousel-slide.active')) {
+          const games = consoles[selectedConsole]?.games || [];
+          if (games.length > 0) {
+            setSelectedGame((prev) => (prev + 1) % games.length);
+          }
+        } else {
+          const nextIndex = (selectedConsole + 1) % consoles.length;
+          setSelectedConsole(nextIndex);
+          setSelectedGame(0);
         }
       } else if (e.key === 'ArrowUp') {
-        const games = consoles[selectedConsole]?.games || [];
-        if (games.length > 0) {
-          setSelectedGame((prev) => (prev - 1 + games.length) % games.length);
+        if (document.querySelector('.games-panel .carousel-slide.active')) {
+          const games = consoles[selectedConsole]?.games || [];
+          if (games.length > 0) {
+            setSelectedGame((prev) => (prev - 1 + games.length) % games.length);
+          }
+        } else {
+          const prevIndex = (selectedConsole - 1 + consoles.length) % consoles.length;
+          setSelectedConsole(prevIndex);
+          setSelectedGame(0);
         }
-      } else if (e.key === 'ArrowLeft') {
-        const prevIndex = (selectedConsole - 1 + consoles.length) % consoles.length;
-        setSelectedConsole(prevIndex);
-        setSelectedGame(0);
-      } else if (e.key === 'ArrowRight') {
-        const nextIndex = (selectedConsole + 1) % consoles.length;
-        setSelectedConsole(nextIndex);
-        setSelectedGame(0);
       } else if (e.key === 'Enter') {
-        const game = consoles[selectedConsole]?.games[selectedGame];
-        if (game) {
-          handleGameClick(game);
+        if (document.querySelector('.games-panel .carousel-slide.active')) {
+          const game = consoles[selectedConsole]?.games[selectedGame];
+          if (game) {
+            handleGameClick(game);
+          }
         }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedConsole, selectedGame, consoles, showFolderSelector, showEmulator]);
+  }, [selectedConsole, selectedGame, consoles, showFolderSelector, showEmulator, currentGameData]);
 
   // Компонент эмулятора
   const EmulatorWindow = () => {
-    if (!showEmulator || !currentGameData) return null;
+    if (!showEmulator) return null;
 
     return (
       <div className="emulator-overlay">
         <div className="emulator-header">
           <div className="emulator-title">
             <i className="fas fa-gamepad"></i>
-            {currentGameData.gameName} - {currentGameData.consoleName}
+            {currentGameData?.gameName} - {currentGameData?.consoleName}
+            <span className="emulator-status">
+              {emulatorUrl ? 'Загрузка...' : 'Готово'}
+            </span>
           </div>
           <button className="close-emulator-btn" onClick={closeEmulator}>
             <i className="fas fa-times"></i> Закрыть (ESC)
@@ -314,137 +499,54 @@ const GamesCarousel = () => {
         </div>
         
         <div className="emulator-container">
-          <div style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#1a1a2e',
-            color: 'white',
-            padding: '40px',
-            textAlign: 'center'
-          }}>
-            <i className="fas fa-gamepad" style={{
-              fontSize: '80px',
-              color: currentGameData.consoleColor,
-              marginBottom: '30px',
-              opacity: 0.8
-            }}></i>
-            
-            <h2 style={{
-              fontSize: '32px',
-              marginBottom: '20px',
-              color: currentGameData.consoleColor
-            }}>
-              {currentGameData.gameName}
-            </h2>
-            
-            <p style={{
-              fontSize: '18px',
-              marginBottom: '10px',
-              opacity: 0.8
-            }}>
-              {currentGameData.consoleName}
-            </p>
-            
-            <p style={{
-              fontSize: '14px',
-              marginBottom: '40px',
-              opacity: 0.6
-            }}>
-              Файл: {currentGameData.fileName}
-            </p>
-            
-            <div style={{
-              background: 'rgba(255,255,255,0.1)',
-              padding: '30px',
-              borderRadius: '15px',
-              maxWidth: '600px',
-              marginBottom: '30px'
-            }}>
-              <p style={{ marginBottom: '15px', fontSize: '16px' }}>
-                🎮 <strong>Игра готова к запуску!</strong>
-              </p>
-              <p style={{ fontSize: '14px', lineHeight: '1.6', opacity: 0.9 }}>
-                Для полноценной игры используйте EmulatorJS или RetroArch.
-                <br/>Нажмите кнопку "Скачать ROM" ниже, чтобы сохранить файл игры,
-                <br/>затем загрузите его в эмулятор на сайте emulatorjs.com
-              </p>
-            </div>
-            
-            <div style={{
-              display: 'flex',
-              gap: '15px',
-              flexWrap: 'wrap',
-              justifyContent: 'center'
-            }}>
-              <button
-                onClick={downloadGame}
-                style={{
-                  background: 'linear-gradient(135deg, #73b7ff, #5aa0ff)',
-                  color: 'white',
-                  border: 'none',
-                  padding: '15px 30px',
-                  borderRadius: '10px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px'
-                }}
-              >
-                <i className="fas fa-download"></i>
-                Скачать ROM
-              </button>
-              
-              <button
-                onClick={() => window.open('https://www.emulatorjs.com/', '_blank')}
-                style={{
-                  background: 'linear-gradient(135deg, #9966ff, #7744cc)',
-                  color: 'white',
-                  border: 'none',
-                  padding: '15px 30px',
-                  borderRadius: '10px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px'
-                }}
-              >
-                <i className="fas fa-external-link-alt"></i>
-                Открыть EmulatorJS
-              </button>
-            </div>
-          </div>
+          <iframe
+            ref={emulatorIframeRef}
+            src={emulatorUrl}
+            title={`${currentGameData?.gameName} Emulator`}
+            className="emulator-iframe"
+            allow="fullscreen"
+            allowFullScreen
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+          />
         </div>
         
-        <div className="emulator-info" style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '20px',
-          padding: '15px',
-          background: 'rgba(30, 30, 40, 0.9)',
-          borderTop: '1px solid rgba(115, 183, 255, 0.3)',
-          fontSize: '13px',
-          color: 'rgba(255,255,255,0.7)',
-          flexWrap: 'wrap'
-        }}>
+        <div className="emulator-controls">
+          <button onClick={() => sendEmulatorCommand('saveState')}>
+            <i className="fas fa-save"></i> Сохранить (F5)
+          </button>
+          <button onClick={() => sendEmulatorCommand('loadState')}>
+            <i className="fas fa-upload"></i> Загрузить (F7)
+          </button>
+          <button onClick={() => sendEmulatorCommand('reset')}>
+            <i className="fas fa-redo"></i> Перезапуск (F1)
+          </button>
+          <button onClick={() => sendEmulatorCommand('pause')}>
+            <i className="fas fa-pause"></i> Пауза (Space)
+          </button>
+          <button onClick={() => {
+            if (emulatorIframeRef.current?.contentWindow?.EJS_fullscreenToggle) {
+              emulatorIframeRef.current.contentWindow.EJS_fullscreenToggle();
+            }
+          }}>
+            <i className="fas fa-expand"></i> Полный экран (F11)
+          </button>
+          <button onClick={closeEmulator} className="exit-btn">
+            <i className="fas fa-sign-out-alt"></i> Выйти в меню
+          </button>
+        </div>
+        
+        <div className="emulator-info">
           <div className="info-item">
             <i className="fas fa-keyboard"></i>
-            <span> Управление: Стрелки + Enter</span>
+            <span>Управление: Стрелки + A/B/X/Y</span>
           </div>
           <div className="info-item">
             <i className="fas fa-gamepad"></i>
-            <span> Поддерживаются геймпады</span>
+            <span>Поддерживаются геймпады</span>
           </div>
           <div className="info-item">
             <i className="fas fa-sd-card"></i>
-            <span> Состояния сохраняются в эмуляторе</span>
+            <span>Состояния сохраняются автоматически</span>
           </div>
         </div>
       </div>
@@ -460,6 +562,7 @@ const GamesCarousel = () => {
         multiple
         webkitdirectory=""
         directory=""
+        accept=".gba,.gb,.gbc,.zip,.7z,.iso,.cso,.pbp,.bin,.ngp,.ngc,.nds,.cue,.img,.md,.gen,.smd,.sfc,.smc,.z64,.v64,.n64"
         onChange={handleFolderSelect}
         style={{ display: 'none' }}
       />
@@ -483,22 +586,48 @@ const GamesCarousel = () => {
             
             <button 
               className="select-folder-btn"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={handleSelectFolderClick}
             >
               <i className="fas fa-folder"></i> Выбрать папку
             </button>
             
+            <div className="server-status">
+              <div className={`status-indicator ${emulatorUrl ? 'online' : 'offline'}`}>
+                <i className={`fas fa-circle ${emulatorUrl ? 'online' : 'offline'}`}></i>
+                Сервер эмулятора: {emulatorUrl ? 'Запущен (порт 3001)' : 'Не запущен'}
+              </div>
+              <div className="status-note">
+                Убедитесь что сервер эмулятора запущен отдельно для автоматической загрузки игр
+              </div>
+            </div>
+            
             <div className="supported-info">
               <h3>Поддерживаемые форматы:</h3>
               <div className="formats-grid">
-                {allConsoles.map(console => (
-                  <div key={console.id} className="format-category">
-                    <h4>{console.name}</h4>
-                    <div className="format-list">
-                      {console.fileExtensions.map(ext => `.${ext}`).join(' ')}
-                    </div>
-                  </div>
-                ))}
+                <div className="format-category">
+                  <h4>Game Boy Advance</h4>
+                  <div className="format-list">.gba .gb .gbc .zip .7z</div>
+                </div>
+                <div className="format-category">
+                  <h4>PlayStation Portable</h4>
+                  <div className="format-list">.iso .cso .pbp .bin</div>
+                </div>
+                <div className="format-category">
+                  <h4>Nintendo DS</h4>
+                  <div className="format-list">.nds .zip</div>
+                </div>
+                <div className="format-category">
+                  <h4>Super Nintendo</h4>
+                  <div className="format-list">.sfc .smc .zip</div>
+                </div>
+                <div className="format-category">
+                  <h4>Sega Genesis</h4>
+                  <div className="format-list">.md .gen .smd .zip</div>
+                </div>
+                <div className="format-category">
+                  <h4>И другие...</h4>
+                  <div className="format-list">.ngp .ngc .cue .bin .z64 .n64</div>
+                </div>
               </div>
             </div>
           </div>
@@ -510,7 +639,7 @@ const GamesCarousel = () => {
             <div className="panel-header">
               <h2 className="panel-title">Консоли</h2>
               <div className="panel-subtitle">
-                {consoles.length} найдено • Стрелки ← →
+                {consoles.length} найдено • Стрелки ↑ ↓
               </div>
             </div>
             
@@ -582,15 +711,11 @@ const GamesCarousel = () => {
                 <i className="fas fa-exchange-alt"></i>
               </button>
               
+              {/* бля */}
               <button 
                 className="folder-btn server-btn"
                 onClick={() => window.open('https://www.emulatorjs.com/', '_blank')}
                 title="Открыть EmulatorJS"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(153, 102, 255, 0.2), rgba(153, 102, 255, 0.3))',
-                  color: '#9966ff',
-                  border: '1px solid rgba(153, 102, 255, 0.3)'
-                }}
               >
                 <i className="fas fa-external-link-alt"></i>
               </button>
