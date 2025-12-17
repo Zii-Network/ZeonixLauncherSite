@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './GamesCarousel.css';
-const [emulatorReady, setEmulatorReady] = useState(false);
 
 const GamesCarousel = () => {
   // Все возможные консоли
@@ -83,11 +82,11 @@ const GamesCarousel = () => {
   const [selectedGame, setSelectedGame] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showFolderSelector, setShowFolderSelector] = useState(true);
-  const [currentGameData, setCurrentGameData] = useState(null);
-  const [emulatorUrl, setEmulatorUrl] = useState('');
+  const [currentGameForEmulator, setCurrentGameForEmulator] = useState(null);
+  const [showEmulator, setShowEmulator] = useState(false);
+  const [gameFiles, setGameFiles] = useState({}); // Добавлено
   
   const fileInputRef = useRef(null);
-  const emulatorIframeRef = useRef(null);
 
   // Определение консоли по расширению файла
   const getConsoleByExtension = (filename) => {
@@ -102,44 +101,20 @@ const GamesCarousel = () => {
     return null;
   };
 
-  // Определение core EmulatorJS
-  const getEmulatorCore = (filename) => {
-    const ext = filename.toLowerCase().split('.').pop();
-    const coreMap = {
-      // Nintendo
-      'gba': 'gba', 'gb': 'gb', 'gbc': 'gb',
-      'nds': 'nds',
-      'nes': 'nes', 'fds': 'nes',
-      'sfc': 'snes', 'smc': 'snes',
-      'z64': 'n64', 'n64': 'n64', 'v64': 'n64',
-      
-      // Sega
-      'md': 'segaMD', 'gen': 'segaMD', 'smd': 'segaMD',
-      
-      // Sony
-      'iso': 'psp', 'cso': 'psp', 'pbp': 'psp',
-      'bin': 'psx', 'cue': 'psx', 'img': 'psx',
-      
-      // Другие
-      'ngp': 'ngp', 'ngc': 'ngp',
-      'pce': 'pce',
-      'ws': 'ws', 'wsc': 'ws',
-      'col': 'coleco', 'cv': 'coleco',
-      'd64': 'vice_x64sc',
-      'zip': 'arcade'
-    };
+  // Функция для преобразования dataURL обратно в File
+  const dataURLtoFile = (dataurl, filename) => {
+    const arr = dataurl.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
     
-    return coreMap[ext] || 'nes';
-  };
-
-  useEffect(() => {
-  return () => {
-    // Очищаем blob URLs при закрытии страницы
-    if (currentGameForEmulator?.game?.fileObject) {
-      // URL уже будет очищен в EmulatorFrame
+    while(n--) {
+      u8arr[n] = bstr.charCodeAt(n);
     }
+    
+    return new File([u8arr], filename, {type: mime});
   };
-}, [currentGameForEmulator]);
 
   useEffect(() => {
     // Загружаем сохраненные игры
@@ -174,21 +149,6 @@ const GamesCarousel = () => {
       }
     }
   }, []);
-
-  // Функция для преобразования dataURL обратно в File
-  const dataURLtoFile = (dataurl, filename) => {
-    const arr = dataurl.split(',');
-    const mime = arr[0].match(/:(.*?);/)[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    
-    while(n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    
-    return new File([u8arr], filename, {type: mime});
-  };
 
   const saveToStorage = (consolesWithGames, filesMap, folderPath = '') => {
     const games = {};
@@ -312,24 +272,15 @@ const GamesCarousel = () => {
     const currentConsole = consoles[selectedConsole];
     if (!currentConsole || !game) return;
     
-    // Проверка поддержки браузером
+    // Проверяем наличие файла
     if (!game.fileObject) {
-      alert('Файл игры не загружен. Попробуйте перезагрузить библиотеку (кнопка обновления).');
+      alert('Файл игры не загружен. Попробуйте перезагрузить библиотеку.');
       return;
     }
     
-    // Проверка размера (ограничение Vercel + браузера)
-    const maxSize = 25 * 1024 * 1024; // 25MB для стабильной работы
-    if (game.fileObject.size > maxSize) {
-      alert(`Файл слишком большой (${game.fileSize}).\n\nДля стабильной работы на Vercel рекомендуемый размер до 25MB.\n\nМожно:\n1. Использовать сжатые версии (.cso для PSP, .zip)\n2. Разбить на части\n3. Использовать локальный сервер для больших файлов`);
-      return;
-    }
-    
-    // Проверка формата
-    const ext = game.fileName.toLowerCase().split('.').pop();
-    const unsupported = ['iso', 'cso', 'pbp', 'bin', 'img']; // Проблемные форматы
-    if (unsupported.includes(ext) && game.fileObject.size > 10 * 1024 * 1024) {
-      if (!window.confirm(`Формат .${ext} может работать нестабильно в браузере.\nПродолжить?`)) {
+    // Проверяем размер файла
+    if (game.fileObject.size > 25 * 1024 * 1024) {
+      if (!window.confirm(`Файл игры большой (${game.fileSize}).\nЭмуляция может работать медленно. Продолжить?`)) {
         return;
       }
     }
@@ -394,39 +345,124 @@ const GamesCarousel = () => {
 
   const closeEmulator = () => {
     setShowEmulator(false);
-    setCurrentGameData(null);
-    setEmulatorUrl('');
+    setCurrentGameForEmulator(null);
+  };
+
+  // EmulatorFrame компонент
+  const EmulatorFrame = () => {
+    if (!showEmulator || !currentGameForEmulator) return null;
     
-    // Выходим из полноэкранного режима
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    }
+    const { game, consoleInfo } = currentGameForEmulator;
+    
+    const getEmulatorCore = () => {
+      if (!game?.fileName) return 'nes';
+      
+      const ext = game.fileName.toLowerCase().split('.').pop();
+      const coreMap = {
+        'gba': 'gba', 'gb': 'gb', 'gbc': 'gbc',
+        'nds': 'nds',
+        'sfc': 'snes', 'smc': 'snes',
+        'z64': 'n64', 'n64': 'n64', 'v64': 'n64',
+        'nes': 'nes',
+        'md': 'segaMD', 'gen': 'segaMD', 'smd': 'segaMD',
+        'iso': 'psp', 'cso': 'psp', 'pbp': 'psp',
+        'bin': 'psx', 'cue': 'psx', 'img': 'psx',
+        'ngp': 'ngp', 'ngc': 'ngp'
+      };
+      
+      return coreMap[ext] || 'nes';
+    };
+
+    const generateEmulatorHTML = () => {
+      const core = getEmulatorCore();
+      const gameUrl = game.fileObject ? URL.createObjectURL(game.fileObject) : '';
+      
+      return `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body, html {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                width: 100vw;
+                height: 100vh;
+                background: #000;
+              }
+              #game {
+                width: 100%;
+                height: 100%;
+              }
+            </style>
+          </head>
+          <body>
+            <div id="game"></div>
+            <script>
+              EJS_player = "#game";
+              EJS_core = "${core}";
+              EJS_gameUrl = "${gameUrl}";
+              EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+              EJS_volume = 1.0;
+              EJS_defaultControls = true;
+              EJS_gameName = "${game.name}";
+              EJS_platform = "${consoleInfo?.name || 'Unknown'}";
+            </script>
+            <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+          </body>
+        </html>
+      `;
+    };
+
+    return (
+      <div className="emulator-overlay">
+        <div className="emulator-header">
+          <div className="emulator-title">
+            <i className="fas fa-gamepad"></i>
+            {game.name} - {consoleInfo?.name}
+          </div>
+          <button className="close-emulator-btn" onClick={closeEmulator}>
+            <i className="fas fa-times"></i> Закрыть (ESC)
+          </button>
+        </div>
+        
+        <div className="emulator-container">
+          <iframe
+            srcDoc={generateEmulatorHTML()}
+            title={`${game.name} Emulator`}
+            className="emulator-iframe"
+            allow="fullscreen"
+            allowFullScreen
+            sandbox="allow-same-origin allow-scripts"
+          />
+        </div>
+        
+        <div className="emulator-controls">
+          <div className="controls-info">
+            <div className="info-item">
+              <i className="fas fa-keyboard"></i>
+              <span>Управление: Стрелки + Z/X/A/S</span>
+            </div>
+            <div className="info-item">
+              <i className="fas fa-gamepad"></i>
+              <span>Геймпады поддерживаются</span>
+            </div>
+            <div className="info-item">
+              <i className="fas fa-save"></i>
+              <span>Сохранения в браузере</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // Обработка клавиатуры
   useEffect(() => {
     if (showEmulator) {
       const handleEmulatorKeyDown = (e) => {
-        switch(e.key) {
-          case 'Escape':
-            closeEmulator();
-            break;
-          case 'F5':
-            e.preventDefault();
-            sendEmulatorCommand('saveState');
-            break;
-          case 'F7':
-            e.preventDefault();
-            sendEmulatorCommand('loadState');
-            break;
-          case 'F1':
-            e.preventDefault();
-            sendEmulatorCommand('reset');
-            break;
-          case ' ':
-            e.preventDefault();
-            sendEmulatorCommand('pause');
-            break;
+        if (e.key === 'Escape') {
+          closeEmulator();
         }
       };
       
@@ -466,89 +502,16 @@ const GamesCarousel = () => {
             handleGameClick(game);
           }
         }
+      } else if (e.key === 'Escape' && showEmulator) {
+        closeEmulator();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedConsole, selectedGame, consoles, showFolderSelector, showEmulator, currentGameData]);
-
-  // Компонент эмулятора
-  const EmulatorWindow = () => {
-    if (!showEmulator) return null;
-
-    return (
-      <div className="emulator-overlay">
-        <div className="emulator-header">
-          <div className="emulator-title">
-            <i className="fas fa-gamepad"></i>
-            {currentGameData?.gameName} - {currentGameData?.consoleName}
-            <span className="emulator-status">
-              {emulatorUrl ? 'Загрузка...' : 'Готово'}
-            </span>
-          </div>
-          <button className="close-emulator-btn" onClick={closeEmulator}>
-            <i className="fas fa-times"></i> Закрыть (ESC)
-          </button>
-        </div>
-        
-        <div className="emulator-container">
-          <iframe
-            ref={emulatorIframeRef}
-            src={emulatorUrl}
-            title={`${currentGameData?.gameName} Emulator`}
-            className="emulator-iframe"
-            allow="fullscreen"
-            allowFullScreen
-            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-          />
-        </div>
-        
-        <div className="emulator-controls">
-          <button onClick={() => sendEmulatorCommand('saveState')}>
-            <i className="fas fa-save"></i> Сохранить (F5)
-          </button>
-          <button onClick={() => sendEmulatorCommand('loadState')}>
-            <i className="fas fa-upload"></i> Загрузить (F7)
-          </button>
-          <button onClick={() => sendEmulatorCommand('reset')}>
-            <i className="fas fa-redo"></i> Перезапуск (F1)
-          </button>
-          <button onClick={() => sendEmulatorCommand('pause')}>
-            <i className="fas fa-pause"></i> Пауза (Space)
-          </button>
-          <button onClick={() => {
-            if (emulatorIframeRef.current?.contentWindow?.EJS_fullscreenToggle) {
-              emulatorIframeRef.current.contentWindow.EJS_fullscreenToggle();
-            }
-          }}>
-            <i className="fas fa-expand"></i> Полный экран (F11)
-          </button>
-          <button onClick={closeEmulator} className="exit-btn">
-            <i className="fas fa-sign-out-alt"></i> Выйти в меню
-          </button>
-        </div>
-        
-        <div className="emulator-info">
-          <div className="info-item">
-            <i className="fas fa-keyboard"></i>
-            <span>Управление: Стрелки + A/B/X/Y</span>
-          </div>
-          <div className="info-item">
-            <i className="fas fa-gamepad"></i>
-            <span>Поддерживаются геймпады</span>
-          </div>
-          <div className="info-item">
-            <i className="fas fa-sd-card"></i>
-            <span>Состояния сохраняются автоматически</span>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  }, [selectedConsole, selectedGame, consoles, showFolderSelector, showEmulator]);
 
   return (
-    
     <div className="games-carousel-wrapper">
       {/* Скрытый input для выбора папки */}
       <input
@@ -562,8 +525,8 @@ const GamesCarousel = () => {
         style={{ display: 'none' }}
       />
 
-      {/* Эмулятор */}
-      <EmulatorWindow />
+      {/* Emulator Frame */}
+      <EmulatorFrame />
 
       {/* Экран выбора папки */}
       {showFolderSelector ? (
@@ -585,16 +548,6 @@ const GamesCarousel = () => {
             >
               <i className="fas fa-folder"></i> Выбрать папку
             </button>
-            
-            <div className="server-status">
-              <div className={`status-indicator ${emulatorUrl ? 'online' : 'offline'}`}>
-                <i className={`fas fa-circle ${emulatorUrl ? 'online' : 'offline'}`}></i>
-                Сервер эмулятора: {emulatorUrl ? 'Запущен (порт 3001)' : 'Не запущен'}
-              </div>
-              <div className="status-note">
-                Убедитесь что сервер эмулятора запущен отдельно для автоматической загрузки игр
-              </div>
-            </div>
             
             <div className="supported-info">
               <h3>Поддерживаемые форматы:</h3>
@@ -706,7 +659,6 @@ const GamesCarousel = () => {
                 <i className="fas fa-exchange-alt"></i>
               </button>
               
-              {/* бля */}
               <button 
                 className="folder-btn server-btn"
                 onClick={() => window.open('https://www.emulatorjs.com/', '_blank')}
@@ -805,20 +757,7 @@ const GamesCarousel = () => {
           </div>
         </>
       )}
-      
-      <div className="vercel-warning">
-        <div className="warning-header">
-          <i className="fas fa-exclamation-triangle"></i>
-          <span>Важно для Vercel:</span>
-        </div>
-        <div className="warning-content">
-          <p>• Файлы хранятся в браузере (LocalStorage)</p>
-          <p>• Максимальный размер файла: 25MB</p>
-          <p>• Для больших файлов используйте .zip архивы</p>
-          <p>• Сохранения работают в текущем браузере</p>
-        </div>
-      </div>
-      
+
       {/* Индикатор загрузки */}
       {isLoading && (
         <div className="loading-overlay">
