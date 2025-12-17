@@ -1,10 +1,5 @@
-import axios from 'axios';
-
 class RetroAchievementsService {
     constructor() {
-        this.client = axios.create({
-            timeout: 10000,
-        });
         this.baseUrl = 'https://retroachievements.org/API';
     }
 
@@ -16,13 +11,19 @@ class RetroAchievementsService {
             const url = `${this.baseUrl}/API_GetUserProfile.php?u=${username}&y=${apiKey}`;
             console.log('UserProfile request URL:', url);
             
-            const response = await this.client.get(url);
-            console.log('UserProfile raw response:', response.data);
+            const response = await fetch(url);
             
-            if (response.data && typeof response.data === 'object') {
-                return response.data;
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('UserProfile raw response:', data);
+            
+            if (data && typeof data === 'object') {
+                return data;
             } else {
-                throw new Error(`Unexpected response: ${JSON.stringify(response.data)}`);
+                throw new Error(`Unexpected response: ${JSON.stringify(data)}`);
             }
         } catch (error) {
             console.error('Error fetching user profile:', error);
@@ -38,13 +39,19 @@ class RetroAchievementsService {
             const url = `${this.baseUrl}/API_GetGame.php?i=${gameId}&u=${username}&y=${apiKey}`;
             console.log('GameDetails request URL:', url);
             
-            const response = await this.client.get(url);
-            console.log('GameDetails raw response:', response.data);
+            const response = await fetch(url);
             
-            if (response.data && typeof response.data === 'object') {
-                return response.data;
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('GameDetails raw response:', data);
+            
+            if (data && typeof data === 'object') {
+                return data;
             } else {
-                throw new Error(`Unexpected response: ${JSON.stringify(response.data)}`);
+                throw new Error(`Unexpected response: ${JSON.stringify(data)}`);
             }
         } catch (error) {
             console.error('Error fetching game details:', error);
