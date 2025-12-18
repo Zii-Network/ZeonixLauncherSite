@@ -29,7 +29,7 @@ const TopBar = ({ onProfileClick, onFriendsClick }) => {
           className="profile-icon" 
           style={{ backgroundImage: "url('/icons_Zii/sat.png')" }}
         />
-        <div>Друзья</div>
+        <div>Friends</div>
       </div>
       
       <div className="top-right">
