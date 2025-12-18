@@ -20,7 +20,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
 
   const [page, setPage] = useState(0);
   const [selectedGame, setSelectedGame] = useState(0);
-  const [editingGameIndex, setEditingGameIndex] = useState(null); // Для меню замены/удаления
+  const [editingGameIndex, setEditingGameIndex] = useState(null);
   const fileInputRef = useRef(null);
   
   const ITEMS_PER_PAGE = 36;
@@ -34,16 +34,13 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
     const absoluteIndex = page * ITEMS_PER_PAGE + index;
     
     if (isEditing) {
-      // Если иконка уже изменена, показываем меню
       if (games[absoluteIndex].customIcon) {
         setEditingGameIndex(absoluteIndex);
       } else {
-        // Если иконка пустая, сразу открываем выбор файла
         fileInputRef.current.dataset.index = absoluteIndex;
         fileInputRef.current.click();
       }
     } else {
-      // Обычный режим
       setSelectedGame(absoluteIndex);
       const game = games[absoluteIndex];
       if (game.url) {
@@ -77,7 +74,6 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
     e.target.value = '';
   };
 
-  // Функции для меню редактирования
   const handleReplaceIcon = () => {
     if (editingGameIndex !== null) {
       fileInputRef.current.dataset.index = editingGameIndex;
@@ -108,7 +104,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
   const nextPage = () => {
     if (page < totalPages - 1) {
       setPage(prev => prev + 1);
-      setSelectedGame(page * ITEMS_PER_PAGE);
+      setSelectedGame((page + 1) * ITEMS_PER_PAGE);
     }
   };
 
@@ -125,8 +121,12 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
   );
 
   return (
-    <div className="section active">
-      {/* Скрытый input для загрузки файлов */}
+    <div className="section active" style={{ 
+      width: '100vw', 
+      height: '100vh', 
+      overflow: 'hidden',
+      position: 'relative'
+    }}>
       <input
         type="file"
         ref={fileInputRef}
@@ -135,7 +135,6 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
         onChange={handleFileSelect}
       />
 
-      {/* Меню замены/удаления иконки */}
       {editingGameIndex !== null && (
         <div 
           style={{
@@ -242,7 +241,6 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
         </div>
       )}
 
-      {/* Заголовок */}
       <div
         className="app-title"
         style={{
@@ -250,22 +248,22 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
           top: '60px',
           left: '50%',
           transform: 'translateX(-50%)',
-          fontSize: '24px',
+          fontSize: 'clamp(18px, 3vw, 24px)',
           textShadow: '0 0 10px #73b7ff',
-          zIndex: 9
+          zIndex: 9,
+          color: 'white'
         }}
       >
         {games[selectedGame]?.name || '—'}
         {isEditing && ' (Редактирование)'}
       </div>
 
-      {/* Кнопка завершить редактирование */}
       {isEditing && (
         <button
           onClick={onToggleEdit}
           style={{
             position: 'fixed',
-            bottom: '100px',
+            bottom: 'clamp(80px, 12vh, 100px)',
             left: '20px',
             zIndex: 10,
             padding: '10px 20px',
@@ -275,7 +273,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
             borderRadius: '20px',
             cursor: 'pointer',
             backdropFilter: 'blur(10px)',
-            fontSize: '14px',
+            fontSize: 'clamp(12px, 1.5vw, 14px)',
             fontWeight: 'bold',
             transition: 'all 0.3s'
           }}
@@ -288,11 +286,10 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
             e.target.style.transform = 'translateY(0)';
           }}
         >
-          ❌ Завершить редактирование
+          ✖ Завершить редактирование
         </button>
       )}
 
-      {/* Стрелка влево */}
       <div
         onClick={prevPage}
         style={{
@@ -301,13 +298,13 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
           top: '50%',
           transform: 'translateY(-50%)',
           zIndex: 10,
-          width: '60px',
-          height: '60px',
+          width: 'clamp(50px, 6vw, 60px)',
+          height: 'clamp(50px, 6vw, 60px)',
           borderRadius: '50%',
           background: page === 0 ? 'rgba(50, 50, 50, 0.3)' : 'rgba(50, 50, 50, 0.8)',
           color: 'white',
           border: '2px solid rgba(150, 150, 150, 0.5)',
-          fontSize: '28px',
+          fontSize: 'clamp(24px, 3vw, 28px)',
           cursor: page === 0 ? 'not-allowed' : 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -336,7 +333,6 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
         ‹
       </div>
 
-      {/* Стрелка вправо */}
       <div
         onClick={nextPage}
         style={{
@@ -345,13 +341,13 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
           top: '50%',
           transform: 'translateY(-50%)',
           zIndex: 10,
-          width: '60px',
-          height: '60px',
+          width: 'clamp(50px, 6vw, 60px)',
+          height: 'clamp(50px, 6vw, 60px)',
           borderRadius: '50%',
           background: page === totalPages - 1 ? 'rgba(50, 50, 50, 0.3)' : 'rgba(50, 50, 50, 0.8)',
           color: 'white',
           border: '2px solid rgba(150, 150, 150, 0.5)',
-          fontSize: '28px',
+          fontSize: 'clamp(24px, 3vw, 28px)',
           cursor: page === totalPages - 1 ? 'not-allowed' : 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -380,14 +376,13 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
         ›
       </div>
 
-      {/* Индикатор страниц */}
       <div className="page-indicator" style={{
         position: 'fixed',
-        bottom: '100px',
+        bottom: 'clamp(80px, 12vh, 100px)',
         left: '50%',
         transform: 'translateX(-50%)',
         display: 'flex',
-        gap: '15px',
+        gap: 'clamp(10px, 1.5vw, 15px)',
         zIndex: 10
       }}>
         {Array.from({ length: totalPages }, (_, i) => (
@@ -399,8 +394,8 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
               setSelectedGame(i * ITEMS_PER_PAGE);
             }}
             style={{
-              width: '12px',
-              height: '12px',
+              width: 'clamp(10px, 1.2vw, 12px)',
+              height: 'clamp(10px, 1.2vw, 12px)',
               borderRadius: '50%',
               background: i === page ? '#73b7ff' : 'rgba(255, 255, 255, 0.3)',
               cursor: 'pointer',
@@ -423,21 +418,22 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
         ))}
       </div>
 
-      {/* Сетка игр */}
       <div
         className="game-grid"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(12, 1fr)',
-          gridTemplateRows: 'repeat(3, 1fr)',
-          gap: '10px',
-          width: '90%',
-          height: 'calc(100vh - 300px)',
+          gridTemplateRows: 'repeat(3, minmax(0, 1fr))',
+          gap: 'clamp(5px, 1vw, 10px)',
+          width: 'min(90%, 1400px)',
+          maxHeight: 'calc(100vh - 200px)',
+          aspectRatio: '12 / 3',
           margin: '0 auto',
           position: 'fixed',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
+          padding: '0 clamp(10px, 2vw, 20px)'
         }}
       >
         {pageGames.map((game, index) => {
@@ -452,18 +448,29 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
               data-name={game.name}
               style={{
                 position: 'relative',
-                animation: isEditing && !game.customIcon ? 'shake 0.5s ease-in-out infinite alternate' : 'none'
+                animation: isEditing && !game.customIcon ? 'shake 0.5s ease-in-out infinite alternate' : 'none',
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer'
               }}
             >
               <img 
                 src={game.customIcon || game.icon} 
                 alt={game.name} 
                 style={{
-                  borderRadius: '15px'
+                  borderRadius: 'clamp(8px, 1.2vw, 15px)',
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  transition: 'transform 0.2s',
+                  border: absoluteIndex === selectedGame ? '2px solid #73b7ff' : '2px solid transparent',
+                  boxShadow: absoluteIndex === selectedGame ? '0 0 15px #73b7ff' : 'none'
                 }}
               />
               
-              {/* Плюсик на пустых иконках */}
               {isEditing && !game.customIcon && (
                 <div style={{
                   position: 'absolute',
@@ -471,13 +478,13 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
                   right: '5px',
                   background: 'rgba(115, 183, 255, 0.9)',
                   color: 'white',
-                  width: '24px',
-                  height: '24px',
+                  width: 'clamp(20px, 2.5vw, 24px)',
+                  height: 'clamp(20px, 2.5vw, 24px)',
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '18px',
+                  fontSize: 'clamp(14px, 1.8vw, 18px)',
                   fontWeight: 'bold',
                   boxShadow: '0 0 10px #73b7ff'
                 }}>
@@ -489,8 +496,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
         })}
       </div>
 
-      {/* Анимация тряски */}
-      <style jsx="true">{`
+      <style>{`
         @keyframes shake {
           0% { transform: translateX(-2px) rotate(-1deg); }
           100% { transform: translateX(2px) rotate(1deg); }
