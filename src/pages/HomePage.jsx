@@ -57,12 +57,12 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
     const reader = new FileReader();
     
     reader.onload = (event) => {
-      const name = prompt('Название игры:', games[index].name || 'Игра');
+      const name = prompt('Game name:', games[index].name || 'Game');
       
       const newGames = [...games];
       newGames[index] = {
         ...newGames[index],
-        name: name || 'Игра',
+        name: name || 'Game',
         customIcon: event.target.result
       };
       
@@ -179,7 +179,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
                 />
               </div>
               <div style={{ color: 'white', fontSize: '16px', marginBottom: '15px' }}>
-                {games[editingGameIndex]?.name || 'Иконка'}
+                {games[editingGameIndex]?.name || 'Icon'}
               </div>
             </div>
             
@@ -200,7 +200,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
                 gap: '8px'
               }}
             >
-              <span>🔄</span> Заменить изображение
+              <span>🔄</span> Replace image
             </button>
             
             <button
@@ -219,7 +219,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
                 gap: '8px'
               }}
             >
-              <span>🗑️</span> Удалить иконку
+              <span>🗑️</span> Delete icon
             </button>
             
             <button
@@ -235,7 +235,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
                 cursor: 'pointer'
               }}
             >
-              Отмена
+              Cancel
             </button>
           </div>
         </div>
@@ -255,7 +255,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
         }}
       >
         {games[selectedGame]?.name || '—'}
-        {isEditing && ' (Редактирование)'}
+        {isEditing && ' (Editing)'}
       </div>
 
       {isEditing && (
@@ -286,7 +286,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
             e.target.style.transform = 'translateY(0)';
           }}
         >
-          ✖ Завершить редактирование
+          ✖ Finish editing
         </button>
       )}
 
