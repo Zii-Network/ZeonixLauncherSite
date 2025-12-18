@@ -423,16 +423,17 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(12, 1fr)',
-          gridTemplateRows: 'repeat(3, 1fr)',
+          gridAutoRows: '1fr',
           gap: 'clamp(8px, 1.2vw, 20px)',
           width: 'clamp(85%, 90vw, 95%)',
-          height: 'clamp(50vh, 65vh, 75vh)',
+          aspectRatio: '12 / 3',
           margin: '0 auto',
           position: 'fixed',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          padding: '0'
+          padding: '0',
+          maxHeight: '80vh'
         }}
       >
         {pageGames.map((game, index) => {
@@ -462,7 +463,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
                 style={{
                   borderRadius: 'clamp(8px, 1vw, 15px)',
                   width: '100%',
-                  height: '100%',
+                  aspectRatio: '1 / 1',
                   objectFit: 'cover',
                   transition: 'transform 0.2s',
                   border: absoluteIndex === selectedGame ? '2px solid #73b7ff' : '2px solid transparent',
