@@ -612,7 +612,7 @@ const GamesCarousel = () => {
                       <div className="slide-info">
                         <div className="slide-title">{console.name}</div>
                         <div className="slide-count">
-                          <i className="fas fa-gamepad"></i> {console.games.length} игр
+                          <i className="fas fa-gamepad"></i> {console.games.length} games
                         </div>
                         <div className="console-stats">
                           <span className="stat-item">
