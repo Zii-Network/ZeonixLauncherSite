@@ -154,7 +154,7 @@ const AchievementsPage = () => {
                             className="login-button"
                             disabled={loading}
                         >
-                            {loading ? 'Загрузка...' : 'Войти'}
+                            {loading ? 'Loading...' : 'Login'}
                         </button>
                     </form>
                 </div>
