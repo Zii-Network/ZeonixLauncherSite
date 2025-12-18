@@ -109,10 +109,10 @@ const AchievementsPage = () => {
             
             {!isLoggedIn ? (
                 <div className="login-container">
-                    <h3>Вход в RetroAchievements</h3>
+                    <h3>Login to RetroAchievements</h3>
                     <form onSubmit={handleLogin} className="login-form">
                         <div className="form-group">
-                            <label htmlFor="username">Имя пользователя:</label>
+                            <label htmlFor="username">Username:</label>
                             <input
                                 type="text"
                                 id="username"
@@ -136,13 +136,13 @@ const AchievementsPage = () => {
                                 disabled={loading}
                             />
                             <small>
-                                API ключ можно получить на{' '}
+                                The API key can be obtained from the{' '}
                                 <a 
                                     href="https://retroachievements.org/controlpanel.php" 
                                     target="_blank" 
                                     rel="noopener noreferrer"
                                 >
-                                    сайте RetroAchievements
+                                    RetroAchievements website.
                                 </a>
                             </small>
                         </div>
@@ -161,28 +161,28 @@ const AchievementsPage = () => {
             ) : (
                 <div className="profile-container">
                     <div className="profile-header">
-                        <h3>👤 Профиль: {userProfile.User}</h3>
+                        <h3>👤 Profile: {userProfile.User}</h3>
                         <button onClick={handleLogout} className="logout-button">
-                            Выйти
+                            Exit
                         </button>
                     </div>
                     
                     <div className="profile-info">
                         <div className="stats-grid">
                             <div className="stat-card">
-                                <span className="stat-label">Очков</span>
+                                <span className="stat-label">Points</span>
                                 <span className="stat-value">{userProfile.TotalPoints}</span>
                             </div>
                             <div className="stat-card">
-                                <span className="stat-label">Ранг</span>
+                                <span className="stat-label">Rank</span>
                                 <span className="stat-value">#{userProfile.Rank}</span>
                             </div>
                             <div className="stat-card">
-                                <span className="stat-label">Контрибьюций</span>
+                                <span className="stat-label">Contributions</span>
                                 <span className="stat-value">{userProfile.ContribCount}</span>
                             </div>
                             <div className="stat-card">
-                                <span className="stat-label">Участник с</span>
+                                <span className="stat-label">Member since</span>
                                 <span className="stat-value">
                                     {formatDate(userProfile.MemberSince)}
                                 </span>
@@ -191,19 +191,19 @@ const AchievementsPage = () => {
                         
                         {userProfile.Motto && (
                             <div className="motto">
-                                <strong>Девиз:</strong> {userProfile.Motto}
+                                <strong>Motto:</strong> {userProfile.Motto}
                             </div>
                         )}
                         
                         {recentGames.length > 0 && (
                             <div className="recent-games">
-                                <h4>Недавно сыгранные:</h4>
+                                <h4>Recently played:</h4>
                                 <div className="games-list">
                                     {recentGames.map(game => (
                                         <div key={game.id} className="game-card">
                                             <div className="game-title">{game.title}</div>
                                             <div className="game-meta">
-                                                <span>Ачивки: {game.achievements}</span>
+                                                <span>Achievements: {game.achievements}</span>
                                             </div>
                                         </div>
                                     ))}
