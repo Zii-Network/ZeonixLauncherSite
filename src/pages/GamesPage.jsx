@@ -4,7 +4,7 @@ import GamesCarousel from '../components/GamesCarousel';
 const GamesPage = () => {
   return (
     <div className="section active">
-      <h2>Игры</h2>
+      <h2></h2>
       <GamesCarousel />
     </div>
   );
