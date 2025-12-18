@@ -402,6 +402,18 @@
   line-height: 1.6;
 }
 
+.folder-selector-content {
+  max-width: 800px;
+  width: 90%; 
+  text-align: center;
+  background: var(--bg-secondary);
+  border-radius: 20px;
+  padding: 40px;
+  border: 2px solid var(--border);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  margin: 0 auto; 
+}
+
 /* Статистика консоли */
 .console-stats {
   margin-top: 8px;
@@ -826,11 +838,16 @@
   
   /* Адаптивность для экрана выбора папки */
   .folder-selector-screen {
-    padding: 20px;
+    width: 100%; 
+    padding: 25px 15px;
+    border-radius: 16px;
+    margin: 0 10px; 
   }
   
   .folder-selector-content {
-    padding: 25px;
+    width: 95%; 
+    padding: 30px 20px; 
+    max-width: none; 
   }
   
   .folder-icon {
@@ -840,11 +857,13 @@
   }
   
   .selector-title {
-    font-size: 24px;
+    font-size: 24px !important;
   }
   
   .selector-description {
-    font-size: 14px;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    margin-bottom: 30px;
   }
   
   .select-folder-btn {
