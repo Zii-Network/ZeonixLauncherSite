@@ -677,7 +677,7 @@ const GamesCarousel = () => {
                   {consoles[selectedConsole]?.name}
                 </span>
                 <span className="games-count">
-                  ({consoles[selectedConsole]?.games.length || 0} игр)
+                  ({consoles[selectedConsole]?.games.length || 0} games)
                 </span>
               </h2>
               <div className="panel-subtitle">
