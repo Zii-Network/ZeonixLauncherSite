@@ -2,11 +2,11 @@ import React from 'react';
 
 const BottomBar = ({ activeSection, onSectionChange }) => {
   const sections = [
-    { id: 'home', icon: 'icons_Zii/Home.png', label: 'Главная' },
-    { id: 'games', icon: 'icons_Zii/Games.png', label: 'Игры' },
-    { id: 'achievements', icon: 'icons_Zii/Achievements.png', label: 'Достижения' },
-    { id: 'friends', icon: 'icons_Zii/Friends.png', label: 'Друзья' },
-    { id: 'apps', icon: 'icons_Zii/ALLApps.png', label: 'Приложения' }
+    { id: 'home', icon: 'icons_Zii/Home.png', label: 'Home' },
+    { id: 'games', icon: 'icons_Zii/Games.png', label: 'Games' },
+    { id: 'achievements', icon: 'icons_Zii/Achievements.png', label: 'Achievements' },
+    { id: 'friends', icon: 'icons_Zii/Friends.png', label: 'Friends' },
+    { id: 'apps', icon: 'icons_Zii/ALLApps.png', label: 'Apps' }
   ];
 
   return (
