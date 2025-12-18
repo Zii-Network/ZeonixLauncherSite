@@ -248,7 +248,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
           top: '60px',
           left: '50%',
           transform: 'translateX(-50%)',
-          fontSize: 'clamp(18px, 3vw, 24px)',
+          fontSize: 'clamp(18px, 2.5vw, 32px)',
           textShadow: '0 0 10px #73b7ff',
           zIndex: 9,
           color: 'white'
@@ -263,7 +263,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
           onClick={onToggleEdit}
           style={{
             position: 'fixed',
-            bottom: 'clamp(80px, 12vh, 100px)',
+            bottom: 'clamp(80px, 10vh, 120px)',
             left: '20px',
             zIndex: 10,
             padding: '10px 20px',
@@ -273,7 +273,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
             borderRadius: '20px',
             cursor: 'pointer',
             backdropFilter: 'blur(10px)',
-            fontSize: 'clamp(12px, 1.5vw, 14px)',
+            fontSize: 'clamp(12px, 1.2vw, 16px)',
             fontWeight: 'bold',
             transition: 'all 0.3s'
           }}
@@ -294,17 +294,17 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
         onClick={prevPage}
         style={{
           position: 'fixed',
-          left: '20px',
+          left: 'clamp(10px, 1.5vw, 20px)',
           top: '50%',
           transform: 'translateY(-50%)',
           zIndex: 10,
-          width: 'clamp(50px, 6vw, 60px)',
-          height: 'clamp(50px, 6vw, 60px)',
+          width: 'clamp(50px, 5vw, 70px)',
+          height: 'clamp(50px, 5vw, 70px)',
           borderRadius: '50%',
           background: page === 0 ? 'rgba(50, 50, 50, 0.3)' : 'rgba(50, 50, 50, 0.8)',
           color: 'white',
           border: '2px solid rgba(150, 150, 150, 0.5)',
-          fontSize: 'clamp(24px, 3vw, 28px)',
+          fontSize: 'clamp(24px, 3vw, 36px)',
           cursor: page === 0 ? 'not-allowed' : 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -337,17 +337,17 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
         onClick={nextPage}
         style={{
           position: 'fixed',
-          right: '20px',
+          right: 'clamp(10px, 1.5vw, 20px)',
           top: '50%',
           transform: 'translateY(-50%)',
           zIndex: 10,
-          width: 'clamp(50px, 6vw, 60px)',
-          height: 'clamp(50px, 6vw, 60px)',
+          width: 'clamp(50px, 5vw, 70px)',
+          height: 'clamp(50px, 5vw, 70px)',
           borderRadius: '50%',
           background: page === totalPages - 1 ? 'rgba(50, 50, 50, 0.3)' : 'rgba(50, 50, 50, 0.8)',
           color: 'white',
           border: '2px solid rgba(150, 150, 150, 0.5)',
-          fontSize: 'clamp(24px, 3vw, 28px)',
+          fontSize: 'clamp(24px, 3vw, 36px)',
           cursor: page === totalPages - 1 ? 'not-allowed' : 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -378,11 +378,11 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
 
       <div className="page-indicator" style={{
         position: 'fixed',
-        bottom: 'clamp(80px, 12vh, 100px)',
+        bottom: 'clamp(80px, 10vh, 120px)',
         left: '50%',
         transform: 'translateX(-50%)',
         display: 'flex',
-        gap: 'clamp(10px, 1.5vw, 15px)',
+        gap: 'clamp(10px, 1.2vw, 18px)',
         zIndex: 10
       }}>
         {Array.from({ length: totalPages }, (_, i) => (
@@ -394,8 +394,8 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
               setSelectedGame(i * ITEMS_PER_PAGE);
             }}
             style={{
-              width: 'clamp(10px, 1.2vw, 12px)',
-              height: 'clamp(10px, 1.2vw, 12px)',
+              width: 'clamp(10px, 1vw, 14px)',
+              height: 'clamp(10px, 1vw, 14px)',
               borderRadius: '50%',
               background: i === page ? '#73b7ff' : 'rgba(255, 255, 255, 0.3)',
               cursor: 'pointer',
@@ -423,17 +423,16 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(12, 1fr)',
-          gridTemplateRows: 'repeat(3, minmax(0, 1fr))',
-          gap: 'clamp(5px, 1vw, 10px)',
-          width: 'min(90%, 1400px)',
-          maxHeight: 'calc(100vh - 200px)',
-          aspectRatio: '12 / 3',
+          gridTemplateRows: 'repeat(3, 1fr)',
+          gap: 'clamp(8px, 1.2vw, 20px)',
+          width: 'clamp(85%, 90vw, 95%)',
+          height: 'clamp(50vh, 65vh, 75vh)',
           margin: '0 auto',
           position: 'fixed',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          padding: '0 clamp(10px, 2vw, 20px)'
+          padding: '0'
         }}
       >
         {pageGames.map((game, index) => {
@@ -461,10 +460,10 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
                 src={game.customIcon || game.icon} 
                 alt={game.name} 
                 style={{
-                  borderRadius: 'clamp(8px, 1.2vw, 15px)',
+                  borderRadius: 'clamp(8px, 1vw, 15px)',
                   width: '100%',
                   height: '100%',
-                  objectFit: 'contain',
+                  objectFit: 'cover',
                   transition: 'transform 0.2s',
                   border: absoluteIndex === selectedGame ? '2px solid #73b7ff' : '2px solid transparent',
                   boxShadow: absoluteIndex === selectedGame ? '0 0 15px #73b7ff' : 'none'
@@ -474,17 +473,17 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
               {isEditing && !game.customIcon && (
                 <div style={{
                   position: 'absolute',
-                  top: '5px',
-                  right: '5px',
+                  top: 'clamp(3px, 0.5vw, 8px)',
+                  right: 'clamp(3px, 0.5vw, 8px)',
                   background: 'rgba(115, 183, 255, 0.9)',
                   color: 'white',
-                  width: 'clamp(20px, 2.5vw, 24px)',
-                  height: 'clamp(20px, 2.5vw, 24px)',
+                  width: 'clamp(20px, 2.2vw, 30px)',
+                  height: 'clamp(20px, 2.2vw, 30px)',
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: 'clamp(14px, 1.8vw, 18px)',
+                  fontSize: 'clamp(14px, 1.5vw, 22px)',
                   fontWeight: 'bold',
                   boxShadow: '0 0 10px #73b7ff'
                 }}>
