@@ -349,14 +349,18 @@ const GamesCarousel = () => {
   };
 
   // EmulatorFrame компонент
+// EmulatorFrame компонент (Внутренний)
   const EmulatorFrame = () => {
+    // Используем ref для доступа к iframe
+    const iframeRef = useRef(null);
+    
     if (!showEmulator || !currentGameForEmulator) return null;
     
     const { game, consoleInfo } = currentGameForEmulator;
     
+    // Логика выбора ядра
     const getEmulatorCore = () => {
       if (!game?.fileName) return 'nes';
-      
       const ext = game.fileName.toLowerCase().split('.').pop();
       const coreMap = {
         'gba': 'gba', 'gb': 'gb', 'gbc': 'gbc',
@@ -369,49 +373,25 @@ const GamesCarousel = () => {
         'bin': 'psx', 'cue': 'psx', 'img': 'psx',
         'ngp': 'ngp', 'ngc': 'ngp'
       };
-      
       return coreMap[ext] || 'nes';
     };
 
-    const generateEmulatorHTML = () => {
-      const core = getEmulatorCore();
-      const gameUrl = game.fileObject ? URL.createObjectURL(game.fileObject) : '';
-      
-      return `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <style>
-              body, html {
-                margin: 0;
-                padding: 0;
-                overflow: hidden;
-                width: 100vw;
-                height: 100vh;
-                background: #000;
-              }
-              #game {
-                width: 100%;
-                height: 100%;
-              }
-            </style>
-          </head>
-          <body>
-            <div id="game"></div>
-            <script>
-              EJS_player = "#game";
-              EJS_core = "${core}";
-              EJS_gameUrl = "${gameUrl}";
-              EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
-              EJS_volume = 1.0;
-              EJS_defaultControls = true;
-              EJS_gameName = "${game.name}";
-              EJS_platform = "${consoleInfo?.name || 'Unknown'}";
-            </script>
-            <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
-          </body>
-        </html>
-      `;
+    // Функция инициализации, запускается когда iframe загрузился
+    const handleIframeLoad = () => {
+        if (!iframeRef.current || !game.fileObject) return;
+
+        // Создаем Blob URL для файла
+        const gameUrl = URL.createObjectURL(game.fileObject);
+        const core = getEmulatorCore();
+
+        // Отправляем данные в статический файл emulator.html
+        iframeRef.current.contentWindow.postMessage({
+            type: 'INIT_GAME',
+            core: core,
+            gameUrl: gameUrl,
+            gameName: game.name,
+            platform: consoleInfo?.name || 'Unknown'
+        }, '*');
     };
 
     return (
@@ -427,13 +407,15 @@ const GamesCarousel = () => {
         </div>
         
         <div className="emulator-container">
+          {/* ВАЖНО: src указывает на файл в папке public */}
           <iframe
-            srcDoc={generateEmulatorHTML()}
+            ref={iframeRef}
+            src="/emulator.html"
             title={`${game.name} Emulator`}
             className="emulator-iframe"
-            allow="fullscreen"
+            allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope"
             allowFullScreen
-            sandbox="allow-same-origin allow-scripts"
+            onLoad={handleIframeLoad}
           />
         </div>
         
@@ -441,15 +423,15 @@ const GamesCarousel = () => {
           <div className="controls-info">
             <div className="info-item">
               <i className="fas fa-keyboard"></i>
-              <span>Controls: </span>
+              <span>Controls: Auto</span>
             </div>
             <div className="info-item">
               <i className="fas fa-gamepad"></i>
-              <span>Gamepads are supported</span>
+              <span>Gamepad: Supported</span>
             </div>
             <div className="info-item">
               <i className="fas fa-save"></i>
-              <span>Saves in the browser</span>
+              <span>Saves: In browser</span>
             </div>
           </div>
         </div>
