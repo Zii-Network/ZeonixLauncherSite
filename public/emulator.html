@@ -17,25 +17,34 @@
             const data = e.data;
 
             if (data.type === 'INIT_GAME') {
-                // Настраиваем глобальные переменные EmulatorJS
+                const gameDiv = document.getElementById('game');
+                gameDiv.innerHTML = ''; 
+
+                const oldScript = document.getElementById('ejs-loader');
+                if (oldScript) oldScript.remove();
+                
+                delete window.EJS_emulator;
+                delete window.EJS_player;
+
+                // --- НАСТРОЙКИ EMULATORJS ---
+                
+                window.EJS_pathtodata = "https://cdn.emulatorjs.org/latest/data/";
+                
                 window.EJS_player = "#game";
                 window.EJS_core = data.core;
                 window.EJS_gameUrl = data.gameUrl;
-                window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
                 window.EJS_gameName = data.gameName;
                 window.EJS_platform = data.platform;
-                window.EJS_volume = 1.0;
-                window.EJS_defaultControls = true;
+                
                 window.EJS_startOnLoaded = true;
+                window.EJS_biosUrl = ""; 
+                
+                window.EJS_defaultControls = true; 
 
-                // Удаляем старый скрипт, если он был (на случай повторного использования)
-                const oldScript = document.getElementById('ejs-loader');
-                if (oldScript) oldScript.remove();
-
-                // Загружаем скрипт эмулятора динамически
+                
                 const script = document.createElement('script');
                 script.id = 'ejs-loader';
-                script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+                script.src = "https://cdn.emulatorjs.org/latest/data/loader.js";
                 script.async = true;
                 document.body.appendChild(script);
             }

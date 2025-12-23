@@ -349,9 +349,7 @@ const GamesCarousel = () => {
   };
 
   // EmulatorFrame компонент
-// EmulatorFrame компонент (Внутренний)
   const EmulatorFrame = () => {
-    // Используем ref для доступа к iframe
     const iframeRef = useRef(null);
     
     if (!showEmulator || !currentGameForEmulator) return null;
@@ -362,17 +360,30 @@ const GamesCarousel = () => {
     const getEmulatorCore = () => {
       if (!game?.fileName) return 'nes';
       const ext = game.fileName.toLowerCase().split('.').pop();
+      
+      // Актуальный список ядер для EmulatorJS (Latest)
       const coreMap = {
+        // Nintendo
         'gba': 'gba', 'gb': 'gb', 'gbc': 'gbc',
         'nds': 'nds',
         'sfc': 'snes', 'smc': 'snes',
         'z64': 'n64', 'n64': 'n64', 'v64': 'n64',
-        'nes': 'nes',
-        'md': 'segaMD', 'gen': 'segaMD', 'smd': 'segaMD',
-        'iso': 'psp', 'cso': 'psp', 'pbp': 'psp',
-        'bin': 'psx', 'cue': 'psx', 'img': 'psx',
-        'ngp': 'ngp', 'ngc': 'ngp'
+        'nes': 'nes', 'fds': 'nes',
+        
+        // Sega (Важно: segaMD используется чаще, чем просто md)
+        'md': 'segaMD', 'gen': 'segaMD', 'smd': 'segaMD', 
+        'gg': 'segaGG', 'sms': 'segaMS',
+        
+        // Sony
+        'iso': 'psp', 'cso': 'psp', 'pbp': 'psp', // PSP
+        'bin': 'psx', 'cue': 'psx', 'img': 'psx', // PS1
+        
+        // Arcade / Others
+        'pce': 'pce',
+        'ngp': 'ngp', 'ngc': 'ngp',
+        'ws': 'ws', 'wsc': 'ws'
       };
+      
       return coreMap[ext] || 'nes';
     };
 
