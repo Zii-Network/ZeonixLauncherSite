@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { useTheme } from './themeContext'; 
 
 const HomePage = ({ isEditing = false, onToggleEdit }) => {
+  const { currentTheme } = useTheme();
+
   const [games, setGames] = useState(() => {
     const saved = localStorage.getItem('customGames');
     if (saved) return JSON.parse(saved);
@@ -26,15 +29,30 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
   const ITEMS_PER_PAGE = 36;
   const totalPages = 3;
 
+  // цвет снега в зависимости от темы
+  const snowColor = useMemo(() => {
+    switch (currentTheme) {
+      case 'light':
+        return '#4a90e2'; 
+      case 'cyberpunk':
+        return '#00ffff'; 
+      case 'neon':
+        return '#39ff14'; 
+      case 'dark':
+      default:
+        return 'rgba(255, 255, 255, 0.8)'; 
+    }
+  }, [currentTheme]);
+
   // --- ГЕНЕРАЦИЯ СНЕЖИНОК ---
   const snowflakes = useMemo(() => {
     return Array.from({ length: 50 }).map((_, i) => ({
       id: i,
       left: Math.random() * 100,
-      animationDuration: Math.random() * 10 + 10, 
+      animationDuration: Math.random() * 10 + 10,
       animationDelay: Math.random() * 10,
       size: Math.random() * 4 + 2,
-      opacity: Math.random() * 0.5 + 0.1
+      opacity: Math.random() * 0.5 + 0.2 // Чуть повысил минимальную прозрачность
     }));
   }, []);
 
@@ -138,7 +156,8 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
       height: '100vh', 
       overflow: 'hidden',
       position: 'relative',
-      background: '#1a1a1a' // Добавил темный фон, чтобы снег был виден, если его нет в CSS
+      // Убрал жесткий фон background: '#1a1a1a', так как он теперь управляется через CSS темы
+      background: 'transparent' 
     }}>
       
       {/* --- СЛОЙ СНЕГА --- */}
@@ -148,7 +167,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
         left: 0,
         width: '100%',
         height: '100%',
-        pointerEvents: 'none', // ВАЖНО: чтобы клики проходили сквозь снег
+        pointerEvents: 'none',
         zIndex: 0,
         overflow: 'hidden'
       }}>
@@ -161,12 +180,13 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
               left: `${flake.left}%`,
               width: `${flake.size}px`,
               height: `${flake.size}px`,
-              background: 'white',
+              background: snowColor, // ИСПОЛЬЗУЕМ ЦВЕТ ТЕМЫ
               borderRadius: '50%',
               opacity: flake.opacity,
               animation: `snowfall ${flake.animationDuration}s linear infinite`,
-              animationDelay: `-${flake.animationDelay}s`, // Отрицательная задержка, чтобы снег шел сразу
-              filter: 'blur(1px)' // Легкое размытие для мягкости
+              animationDelay: `-${flake.animationDelay}s`,
+              filter: currentTheme === 'cyberpunk' || currentTheme === 'neon' ? 'blur(0.5px) drop-shadow(0 0 2px currentColor)' : 'blur(1px)', // Добавил свечение для киберпанка/неона
+              transition: 'background-color 0.5s ease' // Плавная смена цвета при переключении темы
             }}
           />
         ))}
@@ -199,13 +219,14 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
         >
           <div 
             style={{
-              background: 'rgba(50, 50, 50, 0.95)',
-              border: '2px solid #73b7ff',
+              background: 'var(--bg-secondary)', // Используем CSS переменную темы
+              border: '2px solid var(--accent)',
               borderRadius: '15px',
               padding: '20px',
               width: '90%',
               maxWidth: '300px',
-              textAlign: 'center'
+              textAlign: 'center',
+              color: 'var(--text-primary)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -223,7 +244,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               </div>
-              <div style={{ color: 'white', fontSize: '16px', marginBottom: '15px' }}>
+              <div style={{ fontSize: '16px', marginBottom: '15px' }}>
                 {games[editingGameIndex]?.name || 'Icon'}
               </div>
             </div>
@@ -235,8 +256,8 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
                 padding: '12px',
                 marginBottom: '10px',
                 background: 'rgba(115, 183, 255, 0.2)',
-                color: '#73b7ff',
-                border: '1px solid #73b7ff',
+                color: 'var(--accent)',
+                border: '1px solid var(--accent)',
                 borderRadius: '8px',
                 cursor: 'pointer',
                 display: 'flex',
@@ -294,9 +315,9 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
           left: '50%',
           transform: 'translateX(-50%)',
           fontSize: 'clamp(18px, 2.5vw, 32px)',
-          textShadow: '0 0 10px #73b7ff',
+          textShadow: '0 0 10px var(--accent)',
           zIndex: 9,
-          color: 'white'
+          color: 'var(--text-primary)'
         }}
       >
         {games[selectedGame]?.name || '—'}
@@ -322,14 +343,6 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
             fontWeight: 'bold',
             transition: 'all 0.3s'
           }}
-          onMouseEnter={(e) => {
-            e.target.style.background = 'rgba(255, 100, 100, 0.9)';
-            e.target.style.transform = 'translateY(-2px)';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.background = 'rgba(255, 100, 100, 0.8)';
-            e.target.style.transform = 'translateY(0)';
-          }}
         >
           ✖ Finish editing
         </button>
@@ -346,30 +359,30 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
           width: 'clamp(50px, 5vw, 70px)',
           height: 'clamp(50px, 5vw, 70px)',
           borderRadius: '50%',
-          background: page === 0 ? 'rgba(50, 50, 50, 0.3)' : 'rgba(50, 50, 50, 0.8)',
-          color: 'white',
-          border: '2px solid rgba(150, 150, 150, 0.5)',
+          background: page === 0 ? 'rgba(50, 50, 50, 0.3)' : 'var(--bg-secondary)',
+          color: 'var(--text-primary)',
+          border: '2px solid var(--border)',
           fontSize: 'clamp(24px, 3vw, 36px)',
           cursor: page === 0 ? 'not-allowed' : 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          opacity: page === 0 ? 0.3 : 1,
+          opacity: page === 0 ? 0.3 : 0.8,
           transition: 'all 0.3s',
           backdropFilter: 'blur(10px)'
         }}
         onMouseEnter={(e) => {
           if (page !== 0) {
             e.target.style.background = 'rgba(115, 183, 255, 0.3)';
-            e.target.style.borderColor = '#73b7ff';
-            e.target.style.boxShadow = '0 0 20px #73b7ff';
+            e.target.style.borderColor = 'var(--accent)';
+            e.target.style.boxShadow = '0 0 20px var(--accent)';
             e.target.style.transform = 'translateY(-50%) scale(1.1)';
           }
         }}
         onMouseLeave={(e) => {
           if (page !== 0) {
-            e.target.style.background = 'rgba(50, 50, 50, 0.8)';
-            e.target.style.borderColor = 'rgba(150, 150, 150, 0.5)';
+            e.target.style.background = 'var(--bg-secondary)';
+            e.target.style.borderColor = 'var(--border)';
             e.target.style.boxShadow = 'none';
             e.target.style.transform = 'translateY(-50%) scale(1)';
           }
@@ -389,30 +402,30 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
           width: 'clamp(50px, 5vw, 70px)',
           height: 'clamp(50px, 5vw, 70px)',
           borderRadius: '50%',
-          background: page === totalPages - 1 ? 'rgba(50, 50, 50, 0.3)' : 'rgba(50, 50, 50, 0.8)',
-          color: 'white',
-          border: '2px solid rgba(150, 150, 150, 0.5)',
+          background: page === totalPages - 1 ? 'rgba(50, 50, 50, 0.3)' : 'var(--bg-secondary)',
+          color: 'var(--text-primary)',
+          border: '2px solid var(--border)',
           fontSize: 'clamp(24px, 3vw, 36px)',
           cursor: page === totalPages - 1 ? 'not-allowed' : 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          opacity: page === totalPages - 1 ? 0.3 : 1,
+          opacity: page === totalPages - 1 ? 0.3 : 0.8,
           transition: 'all 0.3s',
           backdropFilter: 'blur(10px)'
         }}
         onMouseEnter={(e) => {
           if (page !== totalPages - 1) {
             e.target.style.background = 'rgba(115, 183, 255, 0.3)';
-            e.target.style.borderColor = '#73b7ff';
-            e.target.style.boxShadow = '0 0 20px #73b7ff';
+            e.target.style.borderColor = 'var(--accent)';
+            e.target.style.boxShadow = '0 0 20px var(--accent)';
             e.target.style.transform = 'translateY(-50%) scale(1.1)';
           }
         }}
         onMouseLeave={(e) => {
           if (page !== totalPages - 1) {
-            e.target.style.background = 'rgba(50, 50, 50, 0.8)';
-            e.target.style.borderColor = 'rgba(150, 150, 150, 0.5)';
+            e.target.style.background = 'var(--bg-secondary)';
+            e.target.style.borderColor = 'var(--border)';
             e.target.style.boxShadow = 'none';
             e.target.style.transform = 'translateY(-50%) scale(1)';
           }
@@ -442,22 +455,11 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
               width: 'clamp(10px, 1vw, 14px)',
               height: 'clamp(10px, 1vw, 14px)',
               borderRadius: '50%',
-              background: i === page ? '#73b7ff' : 'rgba(255, 255, 255, 0.3)',
+              background: i === page ? 'var(--accent)' : 'var(--text-secondary)',
               cursor: 'pointer',
               transition: 'all 0.3s',
-              boxShadow: i === page ? '0 0 10px #73b7ff' : 'none'
-            }}
-            onMouseEnter={(e) => {
-              if (i !== page) {
-                e.target.style.background = 'rgba(255, 255, 255, 0.5)';
-                e.target.style.transform = 'scale(1.2)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (i !== page) {
-                e.target.style.background = 'rgba(255, 255, 255, 0.3)';
-                e.target.style.transform = 'scale(1)';
-              }
+              boxShadow: i === page ? '0 0 10px var(--accent)' : 'none',
+              opacity: i === page ? 1 : 0.5
             }}
           />
         ))}
@@ -479,7 +481,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
           transform: 'translate(-50%, -50%)',
           padding: '0',
           maxHeight: '80vh',
-          zIndex: 5 // Поднял сетку выше снега
+          zIndex: 5
         }}
       >
         {pageGames.map((game, index) => {
@@ -512,8 +514,8 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
                   aspectRatio: '1 / 1',
                   objectFit: 'cover',
                   transition: 'transform 0.2s',
-                  border: absoluteIndex === selectedGame ? '2px solid #73b7ff' : '2px solid transparent',
-                  boxShadow: absoluteIndex === selectedGame ? '0 0 15px #73b7ff' : 'none'
+                  border: absoluteIndex === selectedGame ? '2px solid var(--accent)' : '2px solid transparent',
+                  boxShadow: absoluteIndex === selectedGame ? '0 0 15px var(--accent)' : 'none'
                 }}
               />
               
