@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { useTheme } from './themeContext'; 
+import { useTheme } from '../themeContext'; 
 
 const HomePage = ({ isEditing = false, onToggleEdit }) => {
   const { currentTheme } = useTheme();
