@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 
 const HomePage = ({ isEditing = false, onToggleEdit }) => {
   const [games, setGames] = useState(() => {
@@ -25,6 +25,18 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
   
   const ITEMS_PER_PAGE = 36;
   const totalPages = 3;
+
+  // --- ГЕНЕРАЦИЯ СНЕЖИНОК ---
+  const snowflakes = useMemo(() => {
+    return Array.from({ length: 50 }).map((_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      animationDuration: Math.random() * 10 + 10, 
+      animationDelay: Math.random() * 10,
+      size: Math.random() * 4 + 2,
+      opacity: Math.random() * 0.5 + 0.1
+    }));
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('customGames', JSON.stringify(games));
@@ -125,8 +137,41 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
       width: '100vw', 
       height: '100vh', 
       overflow: 'hidden',
-      position: 'relative'
+      position: 'relative',
+      background: '#1a1a1a' // Добавил темный фон, чтобы снег был виден, если его нет в CSS
     }}>
+      
+      {/* --- СЛОЙ СНЕГА --- */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none', // ВАЖНО: чтобы клики проходили сквозь снег
+        zIndex: 0,
+        overflow: 'hidden'
+      }}>
+        {snowflakes.map((flake) => (
+          <div
+            key={flake.id}
+            style={{
+              position: 'absolute',
+              top: '-20px',
+              left: `${flake.left}%`,
+              width: `${flake.size}px`,
+              height: `${flake.size}px`,
+              background: 'white',
+              borderRadius: '50%',
+              opacity: flake.opacity,
+              animation: `snowfall ${flake.animationDuration}s linear infinite`,
+              animationDelay: `-${flake.animationDelay}s`, // Отрицательная задержка, чтобы снег шел сразу
+              filter: 'blur(1px)' // Легкое размытие для мягкости
+            }}
+          />
+        ))}
+      </div>
+
       <input
         type="file"
         ref={fileInputRef}
@@ -433,7 +478,8 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
           left: '50%',
           transform: 'translate(-50%, -50%)',
           padding: '0',
-          maxHeight: '80vh'
+          maxHeight: '80vh',
+          zIndex: 5 // Поднял сетку выше снега
         }}
       >
         {pageGames.map((game, index) => {
@@ -500,6 +546,23 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
         @keyframes shake {
           0% { transform: translateX(-2px) rotate(-1deg); }
           100% { transform: translateX(2px) rotate(1deg); }
+        }
+        @keyframes snowfall {
+          0% {
+            transform: translateY(-20px) translateX(0);
+          }
+          25% {
+            transform: translateY(25vh) translateX(10px);
+          }
+          50% {
+            transform: translateY(50vh) translateX(-10px);
+          }
+          75% {
+            transform: translateY(75vh) translateX(10px);
+          }
+          100% {
+            transform: translateY(110vh) translateX(0);
+          }
         }
       `}</style>
     </div>
