@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import './GamesCarousel.css';
 
 const GamesCarousel = () => {
-  // Все возможные консоли
   const allConsoles = [
     {
       id: "gba",
@@ -84,76 +83,50 @@ const GamesCarousel = () => {
   const [showFolderSelector, setShowFolderSelector] = useState(true);
   const [currentGameForEmulator, setCurrentGameForEmulator] = useState(null);
   const [showEmulator, setShowEmulator] = useState(false);
-  const [gameFiles, setGameFiles] = useState({}); // Добавлено
   
+  const gameFilesRef = useRef({});
   const fileInputRef = useRef(null);
 
-  // Определение консоли по расширению файла
   const getConsoleByExtension = (filename) => {
     const ext = filename.toLowerCase().split('.').pop();
-    
     for (const console of allConsoles) {
       if (console.fileExtensions.includes(ext)) {
         return console.id;
       }
     }
-    
     return null;
   };
 
-  // Функция для преобразования dataURL обратно в File
-  const dataURLtoFile = (dataurl, filename) => {
-    const arr = dataurl.split(',');
-    const mime = arr[0].match(/:(.*?);/)[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    
-    while(n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    
-    return new File([u8arr], filename, {type: mime});
-  };
-
   useEffect(() => {
-    // Загружаем сохраненные игры
     const savedGames = JSON.parse(localStorage.getItem('userGames') || '{}');
     const savedConsoles = JSON.parse(localStorage.getItem('userConsoles') || '[]');
     const savedFolderPath = localStorage.getItem('currentFolderPath') || '';
-    const savedGameFiles = JSON.parse(localStorage.getItem('gameFiles') || '{}');
   
     if (savedConsoles.length > 0 && Object.keys(savedGames).length > 0) {
       const restoredConsoles = savedConsoles.map(consoleId => {
         const consoleInfo = allConsoles.find(c => c.id === consoleId);
-        const gamesWithData = (savedGames[consoleId] || []).map(game => ({
-          ...game,
-          fileObject: savedGameFiles[game.fileName] ? 
-            dataURLtoFile(savedGameFiles[game.fileName], game.fileName) : null
-        }));
-        
         return {
           ...consoleInfo,
-          games: gamesWithData
+          games: savedGames[consoleId] || []
         };
       });
     
       setConsoles(restoredConsoles);
       setCurrentFolderPath(savedFolderPath);
-      setGameFiles(savedGameFiles);
       setShowFolderSelector(false);
     
       if (restoredConsoles.length > 0) {
         setSelectedConsole(0);
         setSelectedGame(0);
       }
+      
+      alert('Библиотека загружена! Для запуска игр выберите папку заново.');
     }
   }, []);
 
-  const saveToStorage = (consolesWithGames, filesMap, folderPath = '') => {
+  const saveToStorage = (consolesWithGames, folderPath = '') => {
     const games = {};
     const consoleIds = [];
-    const gameFilesData = {};
   
     consolesWithGames.forEach(console => {
       if (console.games.length > 0) {
@@ -169,23 +142,14 @@ const GamesCarousel = () => {
       }
     });
   
-    // Сохраняем файлы как dataURL
-    Object.keys(filesMap).forEach(fileName => {
-      const file = filesMap[fileName];
-      if (file && file.size < 10 * 1024 * 1024) { // Ограничение 10MB
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          gameFilesData[fileName] = e.target.result;
-          localStorage.setItem('gameFiles', JSON.stringify(gameFilesData));
-        };
-        reader.readAsDataURL(file);
+    try {
+      localStorage.setItem('userGames', JSON.stringify(games));
+      localStorage.setItem('userConsoles', JSON.stringify(consoleIds));
+      if (folderPath) {
+        localStorage.setItem('currentFolderPath', folderPath);
       }
-    });
-  
-    localStorage.setItem('userGames', JSON.stringify(games));
-    localStorage.setItem('userConsoles', JSON.stringify(consoleIds));
-    if (folderPath) {
-      localStorage.setItem('currentFolderPath', folderPath);
+    } catch (e) {
+      console.error('Error saving to localStorage:', e);
     }
   };
 
@@ -199,7 +163,6 @@ const GamesCarousel = () => {
     const folderPath = files[0]?.webkitRelativePath?.split('/')[0] || 'Выбранная папка';
     setCurrentFolderPath(folderPath);
 
-    // Группируем файлы по консолям и сохраняем файлы
     const gamesByConsole = {};
     const filesMap = {};
     
@@ -212,10 +175,9 @@ const GamesCarousel = () => {
           gamesByConsole[consoleId] = [];
         }
         
-        const consoleInfo = allConsoles.find(c => c.id === consoleId);
         const gameName = file.name.replace(/\.[^/.]+$/, "");
         
-        // Сохраняем файл
+        // Сохраняем файл в памяти
         filesMap[file.name] = file;
         
         gamesByConsole[consoleId].push({
@@ -230,7 +192,6 @@ const GamesCarousel = () => {
       }
     }
 
-    // Создаем массив консолей с играми
     const consolesWithGames = Object.keys(gamesByConsole).map(consoleId => {
       const consoleInfo = allConsoles.find(c => c.id === consoleId);
       return {
@@ -239,19 +200,18 @@ const GamesCarousel = () => {
       };
     });
 
-    // Сортируем по количеству игр
     consolesWithGames.sort((a, b) => b.games.length - a.games.length);
 
     setConsoles(consolesWithGames);
-    setGameFiles(filesMap);
+    gameFilesRef.current = filesMap; // в памяти
     
     if (consolesWithGames.length > 0) {
       setSelectedConsole(0);
       setSelectedGame(0);
-      saveToStorage(consolesWithGames, filesMap, folderPath);
+      saveToStorage(consolesWithGames, folderPath);
     } else {
       setTimeout(() => {
-        alert('No supported games were found in the selected folder.\nSupported formats: .gba, .gb, .gbc, .iso, .nds и другие.');
+        alert('No supported games were found in the selected folder.');
         setShowFolderSelector(true);
       }, 100);
     }
@@ -272,21 +232,22 @@ const GamesCarousel = () => {
     const currentConsole = consoles[selectedConsole];
     if (!currentConsole || !game) return;
     
-    // Проверяем наличие файла
-    if (!game.fileObject) {
-      alert('The game file did not load. Try reloading your library.');
+    // Получаем файл из памяти
+    const fileObject = gameFilesRef.current[game.fileName];
+    
+    if (!fileObject) {
+      alert('The game file is not loaded. Please select the folder again.');
       return;
     }
     
-    // Проверяем размер файла
-    if (game.fileObject.size > 25 * 1024 * 1024) {
+    if (fileObject.size > 25 * 1024 * 1024) {
       if (!window.confirm(`The game file is large (${game.fileSize}).\nEmulation may be slow. Continue?`)) {
         return;
       }
     }
     
     setCurrentGameForEmulator({
-      game: game,
+      game: { ...game, fileObject },
       consoleInfo: currentConsole
     });
     setShowEmulator(true);
@@ -300,42 +261,13 @@ const GamesCarousel = () => {
     fileInputRef.current.click();
   };
 
-  const reloadCurrentFolder = async () => {
-    const savedGames = JSON.parse(localStorage.getItem('userGames') || '{}');
-    const savedConsoles = JSON.parse(localStorage.getItem('userConsoles') || '[]');
-    const savedGameFiles = JSON.parse(localStorage.getItem('gameFiles') || '{}');
-    
-    if (savedConsoles.length > 0 && Object.keys(savedGames).length > 0) {
-      const restoredConsoles = savedConsoles.map(consoleId => {
-        const consoleInfo = allConsoles.find(c => c.id === consoleId);
-        const gamesWithData = (savedGames[consoleId] || []).map(game => ({
-          ...game,
-          fileObject: savedGameFiles[game.fileName] ? 
-            dataURLtoFile(savedGameFiles[game.fileName], game.fileName) : null
-        }));
-        
-        return {
-          ...consoleInfo,
-          games: gamesWithData
-        };
-      });
-      
-      setConsoles(restoredConsoles);
-      setGameFiles(savedGameFiles);
-      alert('The library has been updated!');
-    } else {
-      alert('There is no saved folder for reboot.');
-    }
-  };
-
   const handleResetLibrary = () => {
     if (window.confirm('Delete all downloaded games and choose another folder?')) {
       localStorage.removeItem('userGames');
       localStorage.removeItem('userConsoles');
       localStorage.removeItem('currentFolderPath');
-      localStorage.removeItem('gameFiles');
+      gameFilesRef.current = {};
       setConsoles([]);
-      setGameFiles({});
       setCurrentFolderPath('');
       setShowFolderSelector(true);
       setSelectedConsole(0);
@@ -348,37 +280,28 @@ const GamesCarousel = () => {
     setCurrentGameForEmulator(null);
   };
 
-  // EmulatorFrame компонент
   const EmulatorFrame = () => {
     const iframeRef = useRef(null);
+    const [isReady, setIsReady] = useState(false);
     
     if (!showEmulator || !currentGameForEmulator) return null;
     
     const { game, consoleInfo } = currentGameForEmulator;
     
-    // Логика выбора ядра
     const getEmulatorCore = () => {
       if (!game?.fileName) return 'nes';
       const ext = game.fileName.toLowerCase().split('.').pop();
       
-      // Актуальный список ядер для EmulatorJS (Latest)
       const coreMap = {
-        // Nintendo
         'gba': 'gba', 'gb': 'gb', 'gbc': 'gbc',
         'nds': 'nds',
         'sfc': 'snes', 'smc': 'snes',
         'z64': 'n64', 'n64': 'n64', 'v64': 'n64',
         'nes': 'nes', 'fds': 'nes',
-        
-        // Sega (Важно: segaMD используется чаще, чем просто md)
         'md': 'segaMD', 'gen': 'segaMD', 'smd': 'segaMD', 
         'gg': 'segaGG', 'sms': 'segaMS',
-        
-        // Sony
-        'iso': 'psp', 'cso': 'psp', 'pbp': 'psp', // PSP
-        'bin': 'psx', 'cue': 'psx', 'img': 'psx', // PS1
-        
-        // Arcade / Others
+        'iso': 'psp', 'cso': 'psp', 'pbp': 'psp',
+        'bin': 'psx', 'cue': 'psx', 'img': 'psx',
         'pce': 'pce',
         'ngp': 'ngp', 'ngc': 'ngp',
         'ws': 'ws', 'wsc': 'ws'
@@ -387,23 +310,29 @@ const GamesCarousel = () => {
       return coreMap[ext] || 'nes';
     };
 
-    // Функция инициализации, запускается когда iframe загрузился
     const handleIframeLoad = () => {
-        if (!iframeRef.current || !game.fileObject) return;
-
-        // Создаем Blob URL для файла
-        const gameUrl = URL.createObjectURL(game.fileObject);
-        const core = getEmulatorCore();
-
-        // Отправляем данные в статический файл emulator.html
-        iframeRef.current.contentWindow.postMessage({
-            type: 'INIT_GAME',
-            core: core,
-            gameUrl: gameUrl,
-            gameName: game.name,
-            platform: consoleInfo?.name || 'Unknown'
-        }, '*');
+      setIsReady(true);
     };
+
+    useEffect(() => {
+      if (!isReady || !iframeRef.current || !game.fileObject) return;
+
+      const gameUrl = URL.createObjectURL(game.fileObject);
+      const core = getEmulatorCore();
+
+      // Небольшая задержка lol
+      setTimeout(() => {
+        iframeRef.current.contentWindow.postMessage({
+          type: 'INIT_GAME',
+          core: core,
+          gameUrl: gameUrl,
+          gameName: game.name,
+          platform: consoleInfo?.name || 'Unknown'
+        }, '*');
+      }, 500);
+
+      return () => URL.revokeObjectURL(gameUrl);
+    }, [isReady]);
 
     return (
       <div className="emulator-overlay">
@@ -418,13 +347,12 @@ const GamesCarousel = () => {
         </div>
         
         <div className="emulator-container">
-          {/* ВАЖНО: src указывает на файл в папке public */}
           <iframe
             ref={iframeRef}
             src="/emulator.html"
             title={`${game.name} Emulator`}
             className="emulator-iframe"
-            allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope"
+            allow="gamepad; fullscreen"
             allowFullScreen
             onLoad={handleIframeLoad}
           />
@@ -450,7 +378,6 @@ const GamesCarousel = () => {
     );
   };
 
-  // Обработка клавиатуры
   useEffect(() => {
     if (showEmulator) {
       const handleEmulatorKeyDown = (e) => {
@@ -495,8 +422,6 @@ const GamesCarousel = () => {
             handleGameClick(game);
           }
         }
-      } else if (e.key === 'Escape' && showEmulator) {
-        closeEmulator();
       }
     };
 
@@ -506,7 +431,6 @@ const GamesCarousel = () => {
 
   return (
     <div className="games-carousel-wrapper">
-      {/* Скрытый input для выбора папки */}
       <input
         ref={fileInputRef}
         type="file"
@@ -518,10 +442,8 @@ const GamesCarousel = () => {
         style={{ display: 'none' }}
       />
 
-      {/* Emulator Frame */}
       <EmulatorFrame />
 
-      {/* Экран выбора папки */}
       {showFolderSelector ? (
         <div className="folder-selector-screen">
           <div className="folder-selector-content">
@@ -575,7 +497,6 @@ const GamesCarousel = () => {
         </div>
       ) : (
         <>
-          {/* Левая панель - консоли */}
           <div className="carousel-panel consoles-panel">
             <div className="panel-header">
               <h2 className="panel-title">Consoles</h2>
@@ -633,17 +554,8 @@ const GamesCarousel = () => {
             </div>
           </div>
 
-          {/* Управление папкой */}
           <div className="folder-controls-left">
             <div className="folder-buttons-left">
-              <button 
-                className="folder-btn reload-btn"
-                onClick={reloadCurrentFolder}
-                title="Обновить библиотеку"
-              >
-                <i className="fas fa-sync-alt"></i>
-              </button>
-              
               <button 
                 className="folder-btn change-btn"
                 onClick={handleResetLibrary}
@@ -662,7 +574,6 @@ const GamesCarousel = () => {
             </div>
           </div>
 
-          {/* Правая панель - игры */}
           <div className="carousel-panel games-panel">
             <div className="panel-header">
               <h2 className="panel-title">
@@ -751,7 +662,6 @@ const GamesCarousel = () => {
         </>
       )}
 
-      {/* Индикатор загрузки */}
       {isLoading && (
         <div className="loading-overlay">
           <div className="loading-spinner"></div>
