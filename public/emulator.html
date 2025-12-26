@@ -3,53 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emulator Container</title>
+    <title>EmulatorJS</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
-        #game { width: 100%; height: 100%; }
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            overflow: hidden;
+        }
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
-    <div id="game"></div>
+    <div id="game-container"></div>
 
     <script>
-        window.addEventListener('message', function(e) {
-            const data = e.data;
-            if (data.type === 'INIT_GAME') {
-                const gameDiv = document.getElementById('game');
-                gameDiv.innerHTML = ''; 
-
-                const oldScript = document.getElementById('ejs-loader');
-                if (oldScript) oldScript.remove();
-
-                window.EJS_emulator = null;
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'INIT_GAME') {
+                const { core, gameUrl, gameName } = event.data;
                 
-                // --- ГЛОБАЛЬНЫЕ НАСТРОЙКИ
-                window.EJS_pathtodata = "https://cdn.emulatorjs.org/latest/data/";
-                window.EJS_player = "#game";
-                window.EJS_core = data.core;
-                window.EJS_gameUrl = data.gameUrl;
-                window.EJS_gameName = data.gameName;
-                window.EJS_platform = data.platform;
+                console.log('Initializing emulator:', { core, gameName });
                 
-                window.EJS_language = "en-US"; 
-                window.EJS_disableAutoLang = true;
-
-                window.EJS_defaultControls = true;
-                window.EJS_disableLocalStorage = false; // true
-                window.EJS_disableDatabases = true;    
+                window.EJS_player = '#game-container';
+                window.EJS_core = core;
+                window.EJS_gameUrl = gameUrl;
+                window.EJS_gameName = gameName;
+                window.EJS_pathtodata = 'https://cdn.emulatorjs.org/latest/data/';
                 
                 window.EJS_startOnLoaded = true;
-                window.EJS_volume = 1;
-                window.EJS_biosUrl = ""; 
-
+                window.EJS_volume = 0.5;
+                window.EJS_color = '#1AD6FF';
+                
                 const script = document.createElement('script');
-                script.id = 'ejs-loader';
-                script.src = "https://cdn.emulatorjs.org/latest/data/loader.js";
-                script.async = true;
-                document.body.appendChild(script);
+                script.src = 'https://cdn.emulatorjs.org/latest/data/loader.js';
+                script.onload = function() {
+                    console.log('EmulatorJS loaded successfully');
+                };
+                script.onerror = function() {
+                    console.error('Failed to load EmulatorJS');
+                };
+                document.head.appendChild(script);
             }
         });
+        
+        window.parent.postMessage({ type: 'IFRAME_READY' }, '*');
     </script>
 </body>
 </html>
