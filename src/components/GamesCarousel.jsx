@@ -84,6 +84,7 @@ const GamesCarousel = () => {
   const [currentGameForEmulator, setCurrentGameForEmulator] = useState(null);
   const [showEmulator, setShowEmulator] = useState(false);
   
+  // Храним файлы в памяти, НЕ в localStorage
   const gameFilesRef = useRef({});
   const fileInputRef = useRef(null);
 
@@ -98,6 +99,7 @@ const GamesCarousel = () => {
   };
 
   useEffect(() => {
+    // Загружаем только метаданные игр, НЕ сами файлы
     const savedGames = JSON.parse(localStorage.getItem('userGames') || '{}');
     const savedConsoles = JSON.parse(localStorage.getItem('userConsoles') || '[]');
     const savedFolderPath = localStorage.getItem('currentFolderPath') || '';
@@ -120,6 +122,7 @@ const GamesCarousel = () => {
         setSelectedGame(0);
       }
       
+      // Показываем предупреждение, что нужно переподгрузить файлы
       alert('Библиотека загружена! Для запуска игр выберите папку заново.');
     }
   }, []);
@@ -130,6 +133,7 @@ const GamesCarousel = () => {
   
     consolesWithGames.forEach(console => {
       if (console.games.length > 0) {
+        // Сохраняем только метаданные, БЕЗ файлов
         games[console.id] = console.games.map(game => ({
           id: game.id,
           name: game.name,
@@ -203,7 +207,7 @@ const GamesCarousel = () => {
     consolesWithGames.sort((a, b) => b.games.length - a.games.length);
 
     setConsoles(consolesWithGames);
-    gameFilesRef.current = filesMap; // в памяти
+    gameFilesRef.current = filesMap; // Храним в памяти
     
     if (consolesWithGames.length > 0) {
       setSelectedConsole(0);
@@ -284,9 +288,8 @@ const GamesCarousel = () => {
     const iframeRef = useRef(null);
     const [isReady, setIsReady] = useState(false);
     
-    if (!showEmulator || !currentGameForEmulator) return null;
-    
-    const { game, consoleInfo } = currentGameForEmulator;
+    const game = currentGameForEmulator?.game;
+    const consoleInfo = currentGameForEmulator?.consoleInfo;
     
     const getEmulatorCore = () => {
       if (!game?.fileName) return 'nes';
@@ -314,25 +317,30 @@ const GamesCarousel = () => {
       setIsReady(true);
     };
 
+    // Ждем, пока iframe загрузится, затем инициализируем
     useEffect(() => {
-      if (!isReady || !iframeRef.current || !game.fileObject) return;
+      if (!isReady || !iframeRef.current || !game?.fileObject) return;
 
       const gameUrl = URL.createObjectURL(game.fileObject);
       const core = getEmulatorCore();
 
-      // Небольшая задержка lol
+      // Небольшая задержка для уверенности, что iframe полностью готов
       setTimeout(() => {
-        iframeRef.current.contentWindow.postMessage({
-          type: 'INIT_GAME',
-          core: core,
-          gameUrl: gameUrl,
-          gameName: game.name,
-          platform: consoleInfo?.name || 'Unknown'
-        }, '*');
+        if (iframeRef.current) {
+          iframeRef.current.contentWindow.postMessage({
+            type: 'INIT_GAME',
+            core: core,
+            gameUrl: gameUrl,
+            gameName: game.name,
+            platform: consoleInfo?.name || 'Unknown'
+          }, '*');
+        }
       }, 500);
 
       return () => URL.revokeObjectURL(gameUrl);
-    }, [isReady]);
+    }, [isReady, game, consoleInfo]);
+    
+    if (!showEmulator || !currentGameForEmulator) return null;
 
     return (
       <div className="emulator-overlay">
