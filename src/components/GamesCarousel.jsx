@@ -84,7 +84,7 @@ const GamesCarousel = () => {
   const [currentGameForEmulator, setCurrentGameForEmulator] = useState(null);
   const [showEmulator, setShowEmulator] = useState(false);
   
-  // Храним файлы в памяти, НЕ в localStorage
+  // Храним файлы в памяти (сбрасывается при перезагрузке страницы)
   const gameFilesRef = useRef({});
   const fileInputRef = useRef(null);
 
@@ -98,65 +98,6 @@ const GamesCarousel = () => {
     return null;
   };
 
-  useEffect(() => {
-    // Загружаем только метаданные игр, НЕ сами файлы
-    const savedGames = JSON.parse(localStorage.getItem('userGames') || '{}');
-    const savedConsoles = JSON.parse(localStorage.getItem('userConsoles') || '[]');
-    const savedFolderPath = localStorage.getItem('currentFolderPath') || '';
-  
-    if (savedConsoles.length > 0 && Object.keys(savedGames).length > 0) {
-      const restoredConsoles = savedConsoles.map(consoleId => {
-        const consoleInfo = allConsoles.find(c => c.id === consoleId);
-        return {
-          ...consoleInfo,
-          games: savedGames[consoleId] || []
-        };
-      });
-    
-      setConsoles(restoredConsoles);
-      setCurrentFolderPath(savedFolderPath);
-      setShowFolderSelector(false);
-    
-      if (restoredConsoles.length > 0) {
-        setSelectedConsole(0);
-        setSelectedGame(0);
-      }
-      
-      // Показываем предупреждение, что нужно переподгрузить файлы
-      alert('Библиотека загружена! Для запуска игр выберите папку заново.');
-    }
-  }, []);
-
-  const saveToStorage = (consolesWithGames, folderPath = '') => {
-    const games = {};
-    const consoleIds = [];
-  
-    consolesWithGames.forEach(console => {
-      if (console.games.length > 0) {
-        // Сохраняем только метаданные, БЕЗ файлов
-        games[console.id] = console.games.map(game => ({
-          id: game.id,
-          name: game.name,
-          fileName: game.fileName,
-          fileSize: game.fileSize,
-          uploadDate: game.uploadDate,
-          consoleId: game.consoleId
-        }));
-        consoleIds.push(console.id);
-      }
-    });
-  
-    try {
-      localStorage.setItem('userGames', JSON.stringify(games));
-      localStorage.setItem('userConsoles', JSON.stringify(consoleIds));
-      if (folderPath) {
-        localStorage.setItem('currentFolderPath', folderPath);
-      }
-    } catch (e) {
-      console.error('Error saving to localStorage:', e);
-    }
-  };
-
   const handleFolderSelect = async (event) => {
     const files = Array.from(event.target.files);
     if (!files.length) return;
@@ -164,7 +105,7 @@ const GamesCarousel = () => {
     setIsLoading(true);
     setShowFolderSelector(false);
 
-    const folderPath = files[0]?.webkitRelativePath?.split('/')[0] || 'Выбранная папка';
+    const folderPath = files[0]?.webkitRelativePath?.split('/')[0] || 'Selected folder';
     setCurrentFolderPath(folderPath);
 
     const gamesByConsole = {};
@@ -207,12 +148,11 @@ const GamesCarousel = () => {
     consolesWithGames.sort((a, b) => b.games.length - a.games.length);
 
     setConsoles(consolesWithGames);
-    gameFilesRef.current = filesMap; // Храним в памяти
+    gameFilesRef.current = filesMap;
     
     if (consolesWithGames.length > 0) {
       setSelectedConsole(0);
       setSelectedGame(0);
-      saveToStorage(consolesWithGames, folderPath);
     } else {
       setTimeout(() => {
         alert('No supported games were found in the selected folder.');
@@ -236,7 +176,6 @@ const GamesCarousel = () => {
     const currentConsole = consoles[selectedConsole];
     if (!currentConsole || !game) return;
     
-    // Получаем файл из памяти
     const fileObject = gameFilesRef.current[game.fileName];
     
     if (!fileObject) {
@@ -266,10 +205,7 @@ const GamesCarousel = () => {
   };
 
   const handleResetLibrary = () => {
-    if (window.confirm('Delete all downloaded games and choose another folder?')) {
-      localStorage.removeItem('userGames');
-      localStorage.removeItem('userConsoles');
-      localStorage.removeItem('currentFolderPath');
+    if (window.confirm('Delete all loaded games and choose another folder?')) {
       gameFilesRef.current = {};
       setConsoles([]);
       setCurrentFolderPath('');
@@ -317,14 +253,12 @@ const GamesCarousel = () => {
       setIsReady(true);
     };
 
-    // Ждем, пока iframe загрузится, затем инициализируем
     useEffect(() => {
       if (!isReady || !iframeRef.current || !game?.fileObject) return;
 
       const gameUrl = URL.createObjectURL(game.fileObject);
       const core = getEmulatorCore();
 
-      // Небольшая задержка для уверенности, что iframe полностью готов
       setTimeout(() => {
         if (iframeRef.current) {
           iframeRef.current.contentWindow.postMessage({
@@ -350,7 +284,7 @@ const GamesCarousel = () => {
             {game.name} - {consoleInfo?.name}
           </div>
           <button className="close-emulator-btn" onClick={closeEmulator}>
-            <i className="fas fa-times"></i> Закрыть (ESC)
+            <i className="fas fa-times"></i> Close (ESC)
           </button>
         </div>
         
@@ -567,7 +501,7 @@ const GamesCarousel = () => {
               <button 
                 className="folder-btn change-btn"
                 onClick={handleResetLibrary}
-                title="Выбрать другую папку"
+                title="Select another folder"
               >
                 <i className="fas fa-exchange-alt"></i>
               </button>
@@ -575,7 +509,7 @@ const GamesCarousel = () => {
               <button 
                 className="folder-btn server-btn"
                 onClick={() => window.open('https://www.emulatorjs.com/', '_blank')}
-                title="Открыть EmulatorJS"
+                title="Open EmulatorJS"
               >
                 <i className="fas fa-external-link-alt"></i>
               </button>
