@@ -60,7 +60,7 @@
 
 /* Особый отступ для левой панели с консолями */
 .consoles-panel .carousel-container {
-  margin-bottom: 90px; 
+  margin-bottom: 0 !important;
 }
 
 /* Дорожка карусели */
@@ -104,13 +104,13 @@
 
 .consoles-panel .carousel-slide.prev {
   opacity: 0.4;
-  transform: translate(-50%, -160%) scale(0.85); 
+  transform: translate(-50%, -160%) scale(0.8); 
   z-index: 5;
 }
 
 .consoles-panel .carousel-slide.next {
   opacity: 0.4;
-  transform: translate(-50%, 60%) scale(0.85); 
+  transform: translate(-50%, 60%) scale(0.8); 
   z-index: 5;
 }
 
@@ -129,13 +129,13 @@
 
 .games-panel .carousel-slide.prev {
   opacity: 0.4;
-  transform: translate(-50%, -160%) scale(0.85);
+  transform: translate(-50%, -160%) scale(0.8);
   z-index: 5;
 }
 
 .games-panel .carousel-slide.next {
   opacity: 0.4;
-  transform: translate(-50%, 60%) scale(0.85);
+  transform: translate(-50%, 60%) scale(0.8);
   z-index: 5;
 }
 
