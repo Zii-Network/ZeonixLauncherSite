@@ -23,7 +23,6 @@
   text-align: center;
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
@@ -61,7 +60,7 @@
 
 /* Особый отступ для левой панели с консолями */
 .consoles-panel .carousel-container {
-  margin-bottom: 90px; /* Освобождаем место для элементов управления папкой */
+  margin-bottom: 90px; 
 }
 
 /* Дорожка карусели */
@@ -81,8 +80,10 @@
   position: absolute;
   width: 90%;
   max-width: 500px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, 100%) scale(0.8); 
   opacity: 0;
-  transform: translateY(100%) scale(0.8);
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   z-index: 1;
@@ -103,13 +104,13 @@
 
 .consoles-panel .carousel-slide.prev {
   opacity: 0.4;
-  transform: translate(-50%, -150%) scale(0.9);
+  transform: translate(-50%, -160%) scale(0.85); 
   z-index: 5;
 }
 
 .consoles-panel .carousel-slide.next {
   opacity: 0.4;
-  transform: translate(-50%, 50%) scale(0.9);
+  transform: translate(-50%, 60%) scale(0.85); 
   z-index: 5;
 }
 
@@ -122,19 +123,19 @@
 
 .games-panel .carousel-slide.active {
   opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
+  transform: translate(-50%, -50%) scale(1); 
   z-index: 10;
 }
 
 .games-panel .carousel-slide.prev {
   opacity: 0.4;
-  transform: translate(-50%, -150%) scale(0.9);
+  transform: translate(-50%, -160%) scale(0.85);
   z-index: 5;
 }
 
 .games-panel .carousel-slide.next {
   opacity: 0.4;
-  transform: translate(-50%, 50%) scale(0.9);
+  transform: translate(-50%, 60%) scale(0.85);
   z-index: 5;
 }
 
@@ -252,14 +253,9 @@
   gap: 8px;
   margin-top: 15px;
   padding-top: 15px;
-  border-top: 1px solid var(--border);
   flex-shrink: 0;
   position: relative;
   z-index: 2;
-}
-
-.consoles-panel .carousel-indicator {
-  margin-bottom: 20px; /* Отступ от элементов управления */
 }
 
 .indicator-dot {
@@ -267,18 +263,15 @@
   height: 8px;
   border-radius: 50%;
   background: var(--text-secondary);
+  opacity: 0.4;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .indicator-dot.active {
   background: var(--accent);
+  opacity: 1;
   transform: scale(1.3);
-}
-
-.indicator-dot:hover {
-  background: var(--accent);
-  transform: scale(1.2);
 }
 
 /* ===== НОВЫЕ СТИЛИ ДЛЯ ВЫБОРА ПАПКИ ===== */
@@ -290,19 +283,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
-  box-sizing: border-box;
+  overflow-y: auto; 
+  padding: 20px;
 }
 
 .folder-selector-content {
-  max-width: 800px;
+  max-width: 600px;
   width: 100%;
-  text-align: center;
   background: var(--bg-secondary);
   border-radius: 20px;
-  padding: 40px;
-  border: 2px solid var(--border);
+  padding: 30px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  max-height: 90vh; 
+  overflow-y: auto;
 }
 
 .folder-icon {
