@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useGames } from './GamesContext'; 
 import './GamesCarousel.css';
 
 const GamesCarousel = () => {
@@ -75,17 +76,23 @@ const GamesCarousel = () => {
     }
   ];
 
-  const [consoles, setConsoles] = useState([]);
-  const [currentFolderPath, setCurrentFolderPath] = useState('');
+  const { 
+    gameFilesRef, 
+    consoles, 
+    setConsoles, 
+    currentFolderPath, 
+    setCurrentFolderPath,
+    hasLoadedGames,
+    setHasLoadedGames
+  } = useGames();
+
   const [selectedConsole, setSelectedConsole] = useState(0);
   const [selectedGame, setSelectedGame] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [showFolderSelector, setShowFolderSelector] = useState(true);
+  const [showFolderSelector, setShowFolderSelector] = useState(!hasLoadedGames);
   const [currentGameForEmulator, setCurrentGameForEmulator] = useState(null);
   const [showEmulator, setShowEmulator] = useState(false);
   
-  // Храним файлы в памяти (сбрасывается при перезагрузке страницы)
-  const gameFilesRef = useRef({});
   const fileInputRef = useRef(null);
 
   const getConsoleByExtension = (filename) => {
@@ -122,7 +129,7 @@ const GamesCarousel = () => {
         
         const gameName = file.name.replace(/\.[^/.]+$/, "");
         
-        // Сохраняем файл в памяти
+        // Сохраняем файл в глобальную память
         filesMap[file.name] = file;
         
         gamesByConsole[consoleId].push({
@@ -149,6 +156,7 @@ const GamesCarousel = () => {
 
     setConsoles(consolesWithGames);
     gameFilesRef.current = filesMap;
+    setHasLoadedGames(true);
     
     if (consolesWithGames.length > 0) {
       setSelectedConsole(0);
@@ -157,6 +165,7 @@ const GamesCarousel = () => {
       setTimeout(() => {
         alert('No supported games were found in the selected folder.');
         setShowFolderSelector(true);
+        setHasLoadedGames(false);
       }, 100);
     }
 
@@ -210,6 +219,7 @@ const GamesCarousel = () => {
       setConsoles([]);
       setCurrentFolderPath('');
       setShowFolderSelector(true);
+      setHasLoadedGames(false);
       setSelectedConsole(0);
       setSelectedGame(0);
     }
