@@ -25,33 +25,74 @@
 
     <script>
         window.addEventListener('message', function(event) {
-            if (event.data.type === 'INIT_GAME') {
-                const { core, gameUrl, gameName } = event.data;
-                
-                console.log('Initializing emulator:', { core, gameName });
-                
-                window.EJS_player = '#game-container';
-                window.EJS_core = core;
-                window.EJS_gameUrl = gameUrl;
-                window.EJS_gameName = gameName;
-                window.EJS_pathtodata = 'https://cdn.emulatorjs.org/latest/data/';
-                
-                window.EJS_startOnLoaded = true;
-                window.EJS_volume = 0.5;
-                window.EJS_color = '#1AD6FF';
-                
-                const script = document.createElement('script');
-                script.src = 'https://cdn.emulatorjs.org/latest/data/loader.js';
-                script.onload = function() {
-                    console.log('EmulatorJS loaded successfully');
-                };
-                script.onerror = function() {
-                    console.error('Failed to load EmulatorJS');
-                };
-                document.head.appendChild(script);
+            if (!event.data || event.data.type !== 'INIT_GAME') return;
+
+            // ── Destructure top-level fields from the postMessage payload ─────
+            const {
+                core,
+                gameUrl,
+                gameName,
+                platform,
+                netplay,        // object | undefined — only present when in a room
+            } = event.data;
+
+            console.log('[EmulatorJS] Initializing:', { core, gameName, platform });
+
+            // ── Core emulator config ──────────────────────────────────────────
+            window.EJS_player        = '#game-container';
+            window.EJS_core          = core;
+            window.EJS_gameUrl       = gameUrl;
+            window.EJS_gameName      = gameName;
+            window.EJS_pathtodata    = 'https://cdn.emulatorjs.org/latest/data/';
+            window.EJS_startOnLoaded = true;
+            window.EJS_volume        = 0.5;
+            window.EJS_color         = '#1AD6FF';
+
+            // ── Multiplayer / Netplay config ──────────────────────────────────
+            // The parent already converts http(s):// → ws(s):// before sending,
+            // so netplayUrl is safe to assign directly to EJS_netplayUrl.
+            if (netplay) {
+                // Destructure the nested netplay object explicitly
+                const {
+                    netplayUrl,   // ws:// or wss:// address of the PeerJS signaling server
+                    roomId,       // 6-digit string room ID
+                    nickname,     // player's chosen display name
+                    role,         // 'host' | 'guest' (informational only for EJS)
+                } = netplay;
+
+                if (netplayUrl && roomId) {
+                    console.log('[EmulatorJS] Netplay enabled:', { netplayUrl, roomId, nickname, role });
+
+                    // Assign the two variables EmulatorJS actually reads for netplay
+                    window.EJS_netplayUrl = netplayUrl;
+                    window.EJS_room       = roomId;
+
+                    // Pre-fill the in-lobby nickname if provided
+                    if (nickname) {
+                        window.EJS_defaultOptions = window.EJS_defaultOptions || {};
+                        window.EJS_defaultOptions['netplay-nickname'] = nickname;
+                    }
+
+                    // Acknowledge to the parent that netplay was configured successfully
+                    window.parent.postMessage({
+                        type:   'NETPLAY_CONFIGURED',
+                        roomId: roomId,
+                        role:   role,
+                    }, '*');
+                } else {
+                    console.warn('[EmulatorJS] Netplay object present but missing netplayUrl or roomId — skipping netplay setup.');
+                }
             }
+
+            // ── Load EmulatorJS loader (must come after all EJS_* vars are set) ─
+            const script  = document.createElement('script');
+            script.src    = 'https://cdn.emulatorjs.org/latest/data/loader.js';
+            script.onload = () => console.log('[EmulatorJS] Loader script loaded successfully');
+            script.onerror = () => console.error('[EmulatorJS] Failed to load loader script — check CDN or network.');
+            document.head.appendChild(script);
         });
-        
+
+        // Signal to the parent React app that this iframe is ready to receive messages
         window.parent.postMessage({ type: 'IFRAME_READY' }, '*');
     </script>
 </body>
