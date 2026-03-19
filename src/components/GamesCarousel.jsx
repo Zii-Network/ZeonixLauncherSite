@@ -4,7 +4,7 @@ import './GamesCarousel.css';
 // ─── CONFIG ────────────────────────────────────────────────────────────────────
 const SIGNALING_SERVER_URL =
   process.env.REACT_APP_SIGNALING_SERVER ||
-  'https://cxznl-109-110-47-117.a.free.pinggy.link';
+  'https://0.peerjs.com';
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────────
 const generateRoomId = () => Math.floor(100000 + Math.random() * 900000).toString();

@@ -36,6 +36,20 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
   const ITEMS_PER_PAGE = 36;
   const totalPages = 3;
 
+  // Показывать снег с 20 ноября по 20 февраля каждого года
+  const showSnow = useMemo(() => {
+    const now = new Date();
+    const month = now.getMonth() + 1; // 1–12
+    const day = now.getDate();
+    // Декабрь, январь — всегда снег
+    if (month === 12 || month === 1) return true;
+    // Ноябрь: с 20-го
+    if (month === 11 && day >= 20) return true;
+    // Февраль: по 20-е включительно
+    if (month === 2 && day <= 20) return true;
+    return false;
+  }, []);
+
   // Цвет снега
   const snowColor = useMemo(() => {
     switch (currentTheme) {
@@ -167,8 +181,8 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
       background: 'transparent' 
     }}>
       
-      {/* --- СНЕГ --- */}
-      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+      {/* --- СНЕГ (20 ноября – 20 февраля) --- */}
+      {showSnow && <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
         {snowflakes.map((flake) => (
           <div
             key={flake.id}
@@ -188,7 +202,7 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
             }}
           />
         ))}
-      </div>
+      </div>}
 
       <input
         type="file"
@@ -449,10 +463,17 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
       <div
         className="game-grid"
         style={{
-          display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gridAutoRows: '1fr',
-          gap: 'clamp(8px, 1.2vw, 20px)', width: 'clamp(85%, 90vw, 95%)', aspectRatio: '12 / 3',
-          margin: '0 auto', position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-          padding: '0', maxHeight: '80vh', zIndex: 5
+          display: 'grid',
+          gap: 'clamp(8px, 1.2vw, 20px)',
+          width: 'clamp(85%, 90vw, 95%)',
+          margin: '0 auto',
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          padding: '0',
+          maxHeight: '80vh',
+          zIndex: 5
         }}
       >
         {pageGames.map((game, index) => {
@@ -499,6 +520,33 @@ const HomePage = ({ isEditing = false, onToggleEdit }) => {
       </div>
 
       <style>{`
+        /* ── Адаптивная сетка ── */
+        .game-grid {
+          grid-template-columns: repeat(12, 1fr);
+          grid-auto-rows: 1fr;
+        }
+
+        /* Планшеты (≤ 900px) */
+        @media (max-width: 900px) {
+          .game-grid {
+            grid-template-columns: repeat(6, 1fr);
+          }
+        }
+
+        /* Телефоны (≤ 480px) */
+        @media (max-width: 480px) {
+          .game-grid {
+            grid-template-columns: repeat(4, 1fr);
+          }
+        }
+
+        /* Очень маленькие телефоны (≤ 360px) */
+        @media (max-width: 360px) {
+          .game-grid {
+            grid-template-columns: repeat(3, 1fr);
+          }
+        }
+
         @keyframes shake {
           0% { transform: translateX(-2px) rotate(-1deg); }
           100% { transform: translateX(2px) rotate(1deg); }
