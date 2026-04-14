@@ -93,16 +93,49 @@ const useMultiplayer = (onGuestLaunch) => {
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
 const GamesCarousel = () => {
   const allConsoles = [
-    { id: "gba",      name: "Game Boy Advance",      icon: "fas fa-gameboy",    color: "#73b7ff", fileExtensions: ['gba','gb','gbc','zip','7z'] },
-    { id: "psp",      name: "PlayStation Portable",  icon: "fas fa-gamepad",    color: "#ff6b3d", fileExtensions: ['iso','cso','pbp','bin'] },
-    { id: "ngpc",     name: "Neo Geo Pocket",         icon: "fas fa-gamepad",    color: "#50ff50", fileExtensions: ['ngp','ngc','zip'] },
-    { id: "nds",      name: "Nintendo DS",            icon: "fas fa-gamepad",    color: "#ff66cc", fileExtensions: ['nds','zip'] },
-    { id: "ps1",      name: "PlayStation 1",          icon: "fas fa-playstation",color: "#9966ff", fileExtensions: ['cue','bin','img'] },
-    { id: "genesis",  name: "Sega Genesis",           icon: "fas fa-gamepad",    color: "#ffcc00", fileExtensions: ['md','gen','smd','zip'] },
-    { id: "snes",     name: "Super Nintendo",         icon: "fas fa-gamepad",    color: "#ff3366", fileExtensions: ['sfc','smc','zip'] },
-    { id: "n64",      name: "Nintendo 64",            icon: "fas fa-gamepad",    color: "#ff9900", fileExtensions: ['z64','v64','n64','zip'] },
-    { id: "ps2",      name: "PlayStation 2",          icon: "fas fa-playstation",color: "#0066cc", fileExtensions: ['iso','bin','img'] },
-    { id: "dreamcast",name: "Sega Dreamcast",         icon: "fas fa-gamepad",    color: "#00cc99", fileExtensions: ['cdi','gdi','iso'] },
+    // Nintendo
+    { id: "nes",       name: "Nintendo (NES)",         icon: "fas fa-gamepad",     color: "#e4000f", fileExtensions: ['nes','fds','unf','unif','zip','7z'] },
+    { id: "snes",      name: "Super Nintendo",         icon: "fas fa-gamepad",     color: "#ff3366", fileExtensions: ['sfc','smc','fig','swc','bs','st','zip','7z'] },
+    { id: "n64",       name: "Nintendo 64",            icon: "fas fa-gamepad",     color: "#ff9900", fileExtensions: ['z64','v64','n64','ndd','zip','7z'] },
+    { id: "gba",       name: "Game Boy Advance",       icon: "fas fa-gamepad",     color: "#73b7ff", fileExtensions: ['gba','zip','7z'] },
+    { id: "gb",        name: "Game Boy",               icon: "fas fa-gamepad",     color: "#8bac0f", fileExtensions: ['gb','gbc','zip','7z'] },
+    { id: "nds",       name: "Nintendo DS",            icon: "fas fa-gamepad",     color: "#ff66cc", fileExtensions: ['nds','zip'] },
+    { id: "vb",        name: "Virtual Boy",            icon: "fas fa-vr-cardboard",color: "#cc0000", fileExtensions: ['vb','vboy','zip','7z'] },
+    // Sega
+    { id: "segaMD",    name: "Sega Genesis / MegaDrive", icon: "fas fa-gamepad",  color: "#ffcc00", fileExtensions: ['md','gen','smd','bin','zip','7z'] },
+    { id: "segaMS",    name: "Sega Master System",     icon: "fas fa-gamepad",     color: "#1a75ff", fileExtensions: ['sms','zip','7z'] },
+    { id: "segaGG",    name: "Sega Game Gear",         icon: "fas fa-gamepad",     color: "#ff6600", fileExtensions: ['gg','zip','7z'] },
+    { id: "segaCD",    name: "Sega CD / MegaCD",       icon: "fas fa-compact-disc",color: "#ccaa00", fileExtensions: ['chd','cue','iso','bin'] },
+    { id: "sega32x",   name: "Sega 32X",               icon: "fas fa-gamepad",     color: "#ff3300", fileExtensions: ['32x','zip','7z'] },
+    { id: "segaSaturn",name: "Sega Saturn",            icon: "fas fa-compact-disc",color: "#9999ff", fileExtensions: ['chd','cue','iso','bin','mdf'] },
+    { id: "dreamcast", name: "Sega Dreamcast",         icon: "fas fa-gamepad",     color: "#00cc99", fileExtensions: ['cdi','gdi','chd','iso'] },
+    // Sony
+    { id: "psx",       name: "PlayStation 1",          icon: "fas fa-playstation", color: "#9966ff", fileExtensions: ['cue','bin','img','chd','pbp','mdf','toc','cbn','m3u'] },
+    { id: "ps2",       name: "PlayStation 2",          icon: "fas fa-playstation", color: "#0066cc", fileExtensions: ['iso','chd','bin','img','mdf'] },
+    { id: "psp",       name: "PlayStation Portable",   icon: "fas fa-gamepad",     color: "#ff6b3d", fileExtensions: ['iso','cso','pbp','chd'] },
+    // Atari
+    { id: "atari2600", name: "Atari 2600",             icon: "fas fa-gamepad",     color: "#e67300", fileExtensions: ['a26','bin','zip','7z'] },
+    { id: "atari5200", name: "Atari 5200",             icon: "fas fa-gamepad",     color: "#cc5500", fileExtensions: ['a52','bin','zip','7z'] },
+    { id: "atari7800", name: "Atari 7800",             icon: "fas fa-gamepad",     color: "#ff7733", fileExtensions: ['a78','bin','zip','7z'] },
+    { id: "atarilynx", name: "Atari Lynx",             icon: "fas fa-gamepad",     color: "#ff9966", fileExtensions: ['lnx','zip','7z'] },
+    { id: "atariJaguar",name:"Atari Jaguar",           icon: "fas fa-gamepad",     color: "#cc3300", fileExtensions: ['j64','jag','rom','abs','cof','bin','prg','zip','7z'] },
+    // NEC
+    { id: "pce",       name: "PC Engine / TurboGrafx", icon: "fas fa-gamepad",    color: "#ff4499", fileExtensions: ['pce','zip','7z'] },
+    { id: "pcecd",     name: "PC Engine CD",           icon: "fas fa-compact-disc",color: "#cc2266", fileExtensions: ['chd','cue','iso'] },
+    { id: "pcfx",      name: "PC-FX",                  icon: "fas fa-gamepad",     color: "#cc44aa", fileExtensions: ['chd','cue','toc','ccd'] },
+    // SNK
+    { id: "ngp",       name: "Neo Geo Pocket",         icon: "fas fa-gamepad",     color: "#50ff50", fileExtensions: ['ngp','ngc','zip','7z'] },
+    { id: "neogeo",    name: "Neo Geo AES / MVS",      icon: "fas fa-gamepad",     color: "#cc0000", fileExtensions: ['zip','7z'] },
+    // Arcade / MAME
+    { id: "arcade",    name: "Arcade (MAME)",          icon: "fas fa-dice",        color: "#ff4400", fileExtensions: ['zip','7z','chd'] },
+    { id: "fba",       name: "FinalBurn Alpha / Neo",  icon: "fas fa-dice",        color: "#ff6600", fileExtensions: ['zip','7z'] },
+    // Other Handhelds
+    { id: "ws",        name: "WonderSwan",             icon: "fas fa-gamepad",     color: "#33ccff", fileExtensions: ['ws','wsc','zip','7z'] },
+    // Computers / Other
+    { id: "coleco",    name: "ColecoVision",           icon: "fas fa-gamepad",     color: "#ff8800", fileExtensions: ['col','bin','rom','zip','7z'] },
+    { id: "vectrex",   name: "Vectrex",                icon: "fas fa-gamepad",     color: "#66ccff", fileExtensions: ['vec','gam','bin','zip','7z'] },
+    { id: "msx",       name: "MSX / MSX2",            icon: "fas fa-keyboard",    color: "#ccff00", fileExtensions: ['rom','mx1','mx2','col','dsk','cas','zip','7z'] },
+    { id: "doom",      name: "DOOM (PrBoom)",          icon: "fas fa-skull",       color: "#ff0000", fileExtensions: ['wad','iwad','pwad'] },
   ];
 
   const [consoles, setConsoles]                   = useState([]);
@@ -203,7 +236,7 @@ const GamesCarousel = () => {
 
     // ROM validation for multiplayer guest (shouldn't reach here, but belt & suspenders)
     // Host: broadcast the launch to guests
-    const core = getEmulatorCore(game.fileName);
+    const core = getEmulatorCoreForConsole(game.fileName, currentConsole.id);
     if (mp.role === 'host' && mp.roomId) {
       // Validate guest will have this ROM – we can only hint; actual check is on the guest side
       mp.broadcastLaunch({
@@ -232,17 +265,62 @@ const GamesCarousel = () => {
     if (!fileName) return 'nes';
     const ext = fileName.toLowerCase().split('.').pop();
     const coreMap = {
-      'gba':'gba','gb':'gb','gbc':'gbc','nds':'nds',
-      'sfc':'snes','smc':'snes',
-      'z64':'n64','n64':'n64','v64':'n64',
-      'nes':'nes','fds':'nes',
+      // Nintendo
+      'nes':'nes','fds':'nes','unf':'nes','unif':'nes',
+      'sfc':'snes','smc':'snes','fig':'snes','swc':'snes','bs':'snes','st':'snes',
+      'z64':'n64','v64':'n64','n64':'n64','ndd':'n64',
+      'gba':'gba',
+      'gb':'gb','gbc':'gb',
+      'nds':'nds',
+      'vb':'vb','vboy':'vb',
+      // Sega
       'md':'segaMD','gen':'segaMD','smd':'segaMD',
-      'gg':'segaGG','sms':'segaMS',
-      'iso':'psp','cso':'psp','pbp':'psp',
-      'bin':'psx','cue':'psx','img':'psx',
-      'pce':'pce','ngp':'ngp','ngc':'ngp','ws':'ws','wsc':'ws',
+      'sms':'segaMS',
+      'gg':'segaGG',
+      '32x':'sega32x',
+      'mdf':'psx', // overridden below per context; handled by extension priority
+      'cdi':'dreamcast','gdi':'dreamcast',
+      // Sony
+      'cue':'psx','img':'psx','toc':'psx','cbn':'psx','m3u':'psx','pbp':'psp',
+      'iso':'psx',  // default; PSP ISOs still use 'psp' core — resolved via console detection
+      'cso':'psp',
+      // Atari
+      'a26':'atari2600',
+      'a52':'atari5200',
+      'a78':'atari7800',
+      'lnx':'atarilynx',
+      'j64':'atariJaguar','jag':'atariJaguar',
+      // NEC
+      'pce':'pce',
+      // SNK
+      'ngp':'ngp','ngc':'ngp',
+      'ws':'ws','wsc':'ws',
+      // Computers / Other
+      'col':'coleco',
+      'vec':'vectrex','gam':'vectrex',
+      'mx1':'msx','mx2':'msx','dsk':'msx','cas':'msx',
+      'wad':'doom','iwad':'doom','pwad':'doom',
+      // Generic containers — resolved by console context
+      'chd':'psx','bin':'nes','rom':'coleco','zip':'nes','7z':'nes',
     };
     return coreMap[ext] || 'nes';
+  };
+
+  // Smarter core resolver: uses the detected console id when available
+  const getEmulatorCoreForConsole = (fileName, consoleId) => {
+    const consoleCoreMap = {
+      'nes':'nes','snes':'snes','n64':'n64','gba':'gba','gb':'gb','nds':'nds','vb':'vb',
+      'segaMD':'segaMD','segaMS':'segaMS','segaGG':'segaGG','segaCD':'segaCD',
+      'sega32x':'sega32x','segaSaturn':'segaSaturn','dreamcast':'dreamcast',
+      'psx':'psx','ps2':'ps2','psp':'psp',
+      'atari2600':'atari2600','atari5200':'atari5200','atari7800':'atari7800',
+      'atarilynx':'atarilynx','atariJaguar':'atariJaguar',
+      'pce':'pce','pcecd':'pcecd','pcfx':'pcfx',
+      'ngp':'ngp','neogeo':'neogeo',
+      'arcade':'arcade','fba':'fba',
+      'ws':'ws','coleco':'coleco','vectrex':'vectrex','msx':'msx','doom':'doom',
+    };
+    return consoleCoreMap[consoleId] || getEmulatorCore(fileName);
   };
 
   const handleGameClick = (game) => launchEmulator(game);
@@ -486,7 +564,7 @@ const GamesCarousel = () => {
         multiple
         webkitdirectory=""
         directory=""
-        accept=".gba,.gb,.gbc,.zip,.7z,.iso,.cso,.pbp,.bin,.ngp,.ngc,.nds,.cue,.img,.md,.gen,.smd,.sfc,.smc,.z64,.v64,.n64"
+        accept=".nes,.fds,.unf,.unif,.sfc,.smc,.fig,.swc,.bs,.st,.z64,.v64,.n64,.ndd,.gba,.gb,.gbc,.nds,.vb,.vboy,.md,.gen,.smd,.sms,.gg,.32x,.cdi,.gdi,.cue,.bin,.img,.chd,.pbp,.mdf,.toc,.cbn,.m3u,.iso,.cso,.a26,.a52,.a78,.lnx,.j64,.jag,.pce,.ngp,.ngc,.ws,.wsc,.col,.vec,.gam,.rom,.mx1,.mx2,.dsk,.cas,.wad,.iwad,.pwad,.abs,.cof,.prg,.zip,.7z"
         onChange={handleFolderSelect}
         style={{ display: 'none' }}
       />
@@ -508,12 +586,39 @@ const GamesCarousel = () => {
             <div className="supported-info">
               <h3>Supported formats:</h3>
               <div className="formats-grid">
-                <div className="format-category"><h4>Game Boy Advance</h4><div className="format-list">.gba .gb .gbc .zip .7z</div></div>
-                <div className="format-category"><h4>PlayStation Portable</h4><div className="format-list">.iso .cso .pbp .bin</div></div>
+                <div className="format-category"><h4>Nintendo (NES)</h4><div className="format-list">.nes .fds .unf .zip</div></div>
+                <div className="format-category"><h4>Super Nintendo</h4><div className="format-list">.sfc .smc .fig .swc .zip</div></div>
+                <div className="format-category"><h4>Nintendo 64</h4><div className="format-list">.z64 .v64 .n64 .ndd .zip</div></div>
+                <div className="format-category"><h4>Game Boy / GBC</h4><div className="format-list">.gb .gbc .zip</div></div>
+                <div className="format-category"><h4>Game Boy Advance</h4><div className="format-list">.gba .zip .7z</div></div>
                 <div className="format-category"><h4>Nintendo DS</h4><div className="format-list">.nds .zip</div></div>
-                <div className="format-category"><h4>Super Nintendo</h4><div className="format-list">.sfc .smc .zip</div></div>
-                <div className="format-category"><h4>Sega Genesis</h4><div className="format-list">.md .gen .smd .zip</div></div>
-                <div className="format-category"><h4>And others…</h4><div className="format-list">.ngp .ngc .cue .bin .z64 .n64</div></div>
+                <div className="format-category"><h4>Virtual Boy</h4><div className="format-list">.vb .vboy .zip</div></div>
+                <div className="format-category"><h4>Sega Genesis / MD</h4><div className="format-list">.md .gen .smd .bin .zip</div></div>
+                <div className="format-category"><h4>Sega Master System</h4><div className="format-list">.sms .zip</div></div>
+                <div className="format-category"><h4>Sega Game Gear</h4><div className="format-list">.gg .zip</div></div>
+                <div className="format-category"><h4>Sega CD / MegaCD</h4><div className="format-list">.chd .cue .iso .bin</div></div>
+                <div className="format-category"><h4>Sega 32X</h4><div className="format-list">.32x .zip</div></div>
+                <div className="format-category"><h4>Sega Saturn</h4><div className="format-list">.chd .cue .iso .mdf</div></div>
+                <div className="format-category"><h4>Sega Dreamcast</h4><div className="format-list">.cdi .gdi .chd .iso</div></div>
+                <div className="format-category"><h4>PlayStation 1</h4><div className="format-list">.cue .bin .img .chd .pbp .m3u</div></div>
+                <div className="format-category"><h4>PlayStation 2</h4><div className="format-list">.iso .chd .bin .img</div></div>
+                <div className="format-category"><h4>PlayStation Portable</h4><div className="format-list">.iso .cso .pbp .chd</div></div>
+                <div className="format-category"><h4>Atari 2600</h4><div className="format-list">.a26 .bin .zip</div></div>
+                <div className="format-category"><h4>Atari 5200</h4><div className="format-list">.a52 .bin .zip</div></div>
+                <div className="format-category"><h4>Atari 7800</h4><div className="format-list">.a78 .bin .zip</div></div>
+                <div className="format-category"><h4>Atari Lynx</h4><div className="format-list">.lnx .zip</div></div>
+                <div className="format-category"><h4>Atari Jaguar</h4><div className="format-list">.j64 .jag .abs .cof .zip</div></div>
+                <div className="format-category"><h4>PC Engine / TurboGrafx</h4><div className="format-list">.pce .zip</div></div>
+                <div className="format-category"><h4>PC Engine CD</h4><div className="format-list">.chd .cue .iso</div></div>
+                <div className="format-category"><h4>PC-FX</h4><div className="format-list">.chd .cue .toc .ccd</div></div>
+                <div className="format-category"><h4>Neo Geo Pocket</h4><div className="format-list">.ngp .ngc .zip</div></div>
+                <div className="format-category"><h4>Neo Geo AES / MVS</h4><div className="format-list">.zip .7z</div></div>
+                <div className="format-category"><h4>Arcade (MAME)</h4><div className="format-list">.zip .7z .chd</div></div>
+                <div className="format-category"><h4>WonderSwan</h4><div className="format-list">.ws .wsc .zip</div></div>
+                <div className="format-category"><h4>ColecoVision</h4><div className="format-list">.col .bin .rom .zip</div></div>
+                <div className="format-category"><h4>Vectrex</h4><div className="format-list">.vec .gam .bin .zip</div></div>
+                <div className="format-category"><h4>MSX / MSX2</h4><div className="format-list">.rom .mx1 .mx2 .dsk .cas .zip</div></div>
+                <div className="format-category"><h4>DOOM (PrBoom)</h4><div className="format-list">.wad .iwad .pwad</div></div>
               </div>
             </div>
           </div>
