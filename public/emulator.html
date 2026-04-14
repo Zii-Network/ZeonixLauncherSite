@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EmulatorJS</title>
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            margin: 0;
-            padding: 0;
             background: #000;
             overflow: hidden;
+            font-family: system-ui, sans-serif;
         }
+
         #game-container {
             width: 100vw;
             height: 100vh;
@@ -18,82 +20,297 @@
             align-items: center;
             justify-content: center;
         }
+
+        /* ── Loading screen shown while waiting for INIT_GAME ── */
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            background: #0a0f1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            z-index: 100;
+            transition: opacity 0.4s ease;
+        }
+        #loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #1e3045;
+            border-top-color: #1AD6FF;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #loading-label {
+            color: #7a9ab8;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+        #loading-title {
+            color: #cde;
+            font-size: 1.1rem;
+            font-weight: 600;
+            max-width: 320px;
+            text-align: center;
+        }
+
+        /* ── Error screen shown when something goes wrong ── */
+        #error-screen {
+            position: fixed;
+            inset: 0;
+            background: #0a0f1a;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            z-index: 200;
+            padding: 24px;
+        }
+        #error-screen.visible { display: flex; }
+        #error-icon { font-size: 2.5rem; }
+        #error-title { color: #f66; font-size: 1.1rem; font-weight: 700; }
+        #error-detail { color: #7a9ab8; font-size: 0.8rem; text-align: center; max-width: 340px; line-height: 1.6; }
+        #error-bios-hint {
+            display: none;
+            background: #1a2d42;
+            border: 1px solid #2a4060;
+            border-radius: 8px;
+            padding: 10px 16px;
+            color: #aac;
+            font-size: 0.78rem;
+            max-width: 360px;
+            line-height: 1.6;
+        }
+        #error-bios-hint.visible { display: block; }
     </style>
 </head>
 <body>
+
+    <!-- Loading screen -->
+    <div id="loading-screen">
+        <div class="loading-spinner"></div>
+        <div id="loading-title">Loading game…</div>
+        <div id="loading-label">Waiting for game data</div>
+    </div>
+
+    <!-- Error screen -->
+    <div id="error-screen">
+        <div id="error-icon">⚠️</div>
+        <div id="error-title">Emulator failed to start</div>
+        <div id="error-detail"></div>
+        <div id="error-bios-hint"></div>
+    </div>
+
+    <!-- EmulatorJS mounts inside this div -->
     <div id="game-container"></div>
 
     <script>
-        window.addEventListener('message', function(event) {
-            if (!event.data || event.data.type !== 'INIT_GAME') return;
+    (() => {
+        'use strict';
 
-            // ── Destructure top-level fields from the postMessage payload ─────
-            const {
-                core,
-                gameUrl,
-                gameName,
-                platform,
-                netplay,        // object | undefined — only present when in a room
-            } = event.data;
+        // ── Consoles that require a BIOS to run correctly ─────────────────────
+        // Used to show a targeted hint in the error screen if loading fails and
+        // a biosUrl was expected but the file may be missing.
+        const BIOS_REQUIRED_CORES = new Set([
+            'mednafen_saturn', 'beetle_saturn',   // Sega Saturn
+            'segaCD',                              // Sega CD / MegaCD
+            'pcecd',                               // PC Engine CD
+            'pcfx',                                // PC-FX
+            'ps2',                                 // PlayStation 2
+        ]);
 
-            console.log('[EmulatorJS] Initializing:', { core, gameName, platform });
+        // ── DOM refs ──────────────────────────────────────────────────────────
+        const loadingScreen = document.getElementById('loading-screen');
+        const loadingTitle  = document.getElementById('loading-title');
+        const loadingLabel  = document.getElementById('loading-label');
+        const errorScreen   = document.getElementById('error-screen');
+        const errorDetail   = document.getElementById('error-detail');
+        const errorBiosHint = document.getElementById('error-bios-hint');
 
-            // ── Core emulator config ──────────────────────────────────────────
+        let emulatorStarted = false;
+
+        // ── Helpers ───────────────────────────────────────────────────────────
+        function showError(detail, biosUrl) {
+            loadingScreen.classList.add('hidden');
+            errorScreen.classList.add('visible');
+            errorDetail.textContent = detail;
+            if (biosUrl) {
+                errorBiosHint.classList.add('visible');
+                errorBiosHint.textContent =
+                    `This console requires a BIOS file. Expected path: ${biosUrl}. ` +
+                    `Place the correct BIOS image at that location and reload.`;
+            }
+        }
+
+        function hideLoadingScreen() {
+            loadingScreen.classList.add('hidden');
+        }
+
+        // ── Main init ─────────────────────────────────────────────────────────
+        /**
+         * applyAndLaunch(payload)
+         *
+         * Applies every EJS_* variable from the payload to window, then
+         * dynamically appends the EmulatorJS loader script.
+         *
+         * Priority order for each setting:
+         *   1. payload.ejsConf  – the complete, pre-validated object built by
+         *                         GamesCarousel's EmulatorFrame (highest trust)
+         *   2. payload.*        – legacy flat fields for backwards compatibility
+         *
+         * We never fall back to auto-detection for core or system: if those
+         * fields are missing the error screen is shown immediately.
+         */
+        function applyAndLaunch(payload) {
+            if (emulatorStarted) {
+                console.warn('[EJS] applyAndLaunch called more than once — ignoring.');
+                return;
+            }
+            emulatorStarted = true;
+
+            // ── 1. Pull from ejsConf (preferred) or legacy flat fields ────────
+            const conf        = payload.ejsConf || {};
+
+            // Core — must be explicit; we never let EJS derive it from the URL
+            const core        = conf.EJS_core    || payload.core;
+            // System — the EJS "system" string (e.g. "segaSaturn", "psx", …)
+            const system      = conf.EJS_system   || payload.system || payload.platform || '';
+            const gameUrl     = conf.EJS_gameUrl  || payload.gameUrl;
+            const gameName    = conf.EJS_gameName || payload.gameName || 'Unknown Game';
+            const pathToData  = conf.EJS_pathtodata || 'https://cdn.emulatorjs.org/latest/data/';
+            const biosUrl     = conf.EJS_biosUrl  || null;
+
+            // ── 2. Validate required fields ───────────────────────────────────
+            if (!core) {
+                showError(
+                    'No emulator core was specified. The game cannot be launched. ' +
+                    'This is a bug — please report it.',
+                    null
+                );
+                return;
+            }
+            if (!gameUrl) {
+                showError('No game URL was received. The ROM file may not have loaded correctly.', null);
+                return;
+            }
+
+            // ── 3. Update loading screen with game title ───────────────────────
+            loadingTitle.textContent = gameName;
+            loadingLabel.textContent = `Core: ${core}  •  System: ${system || '—'}`;
+
+            // ── 4. Set all EJS_* globals on window ────────────────────────────
+            //
+            // We set these BEFORE appending loader.js so that when the loader
+            // script executes it reads the already-configured values.
+            //
+            // EJS_core and EJS_system are set from our resolved variables above —
+            // NEVER from the raw file extension — so the emulator cannot
+            // accidentally load the wrong core (e.g. PCSX for a Saturn disc).
             window.EJS_player        = '#game-container';
-            window.EJS_core          = core;
+            window.EJS_core          = core;           // explicit — never auto-detected
+            window.EJS_system        = system;         // explicit — never auto-detected
             window.EJS_gameUrl       = gameUrl;
             window.EJS_gameName      = gameName;
-            window.EJS_pathtodata    = 'https://cdn.emulatorjs.org/latest/data/';
+            window.EJS_pathtodata    = pathToData;
             window.EJS_startOnLoaded = true;
-            window.EJS_volume        = 0.5;
-            window.EJS_color         = '#1AD6FF';
+            window.EJS_volume        = conf.EJS_volume ?? 0.5;
+            window.EJS_color         = conf.EJS_color  ?? '#1AD6FF';
 
-            // ── Multiplayer / Netplay config ──────────────────────────────────
-            // The parent already converts http(s):// → ws(s):// before sending,
-            // so netplayUrl is safe to assign directly to EJS_netplayUrl.
-            if (netplay) {
-                // Destructure the nested netplay object explicitly
-                const {
-                    netplayUrl,   // ws:// or wss:// address of the PeerJS signaling server
-                    roomId,       // 6-digit string room ID
-                    nickname,     // player's chosen display name
-                    role,         // 'host' | 'guest' (informational only for EJS)
-                } = netplay;
+            // ── 5. BIOS ───────────────────────────────────────────────────────
+            // Inject the BIOS URL if the console definition declared one.
+            // EmulatorJS reads EJS_biosUrl to locate firmware for cores that
+            // require it (Saturn, PC Engine CD, Sega CD, PS2, PC-FX…).
+            if (biosUrl) {
+                window.EJS_biosUrl = biosUrl;
+                console.log(`[EJS] BIOS URL set: ${biosUrl}`);
+            } else if (BIOS_REQUIRED_CORES.has(core)) {
+                // The core needs a BIOS but none was supplied — warn loudly so
+                // the developer can add biosUrl to the allConsoles entry.
+                console.warn(
+                    `[EJS] Core "${core}" typically requires a BIOS file, but ` +
+                    `no biosUrl was provided. Emulation may fail or use HLE BIOS.`
+                );
+            }
 
-                if (netplayUrl && roomId) {
-                    console.log('[EmulatorJS] Netplay enabled:', { netplayUrl, roomId, nickname, role });
-
-                    // Assign the two variables EmulatorJS actually reads for netplay
-                    window.EJS_netplayUrl = netplayUrl;
-                    window.EJS_room       = roomId;
-
-                    // Pre-fill the in-lobby nickname if provided
-                    if (nickname) {
-                        window.EJS_defaultOptions = window.EJS_defaultOptions || {};
-                        window.EJS_defaultOptions['netplay-nickname'] = nickname;
-                    }
-
-                    // Acknowledge to the parent that netplay was configured successfully
-                    window.parent.postMessage({
-                        type:   'NETPLAY_CONFIGURED',
-                        roomId: roomId,
-                        role:   role,
-                    }, '*');
-                } else {
-                    console.warn('[EmulatorJS] Netplay object present but missing netplayUrl or roomId — skipping netplay setup.');
+            // ── 6. Netplay ────────────────────────────────────────────────────
+            // Netplay config lives in payload.netplay (object) or in the ejsConf
+            // fields EJS_netplayUrl / EJS_roomId / EJS_playerName.
+            const netplay = payload.netplay;
+            if (netplay?.netplayUrl && netplay?.roomId) {
+                window.EJS_netplayUrl = netplay.netplayUrl; // already ws:// from parent
+                window.EJS_room       = netplay.roomId;
+                if (netplay.nickname) {
+                    window.EJS_defaultOptions = window.EJS_defaultOptions || {};
+                    window.EJS_defaultOptions['netplay-nickname'] = netplay.nickname;
+                }
+                console.log('[EJS] Netplay configured:', {
+                    url: netplay.netplayUrl,
+                    room: netplay.roomId,
+                    role: netplay.role,
+                    nick: netplay.nickname,
+                });
+                window.parent.postMessage({
+                    type:   'NETPLAY_CONFIGURED',
+                    roomId: netplay.roomId,
+                    role:   netplay.role,
+                }, '*');
+            } else if (conf.EJS_netplayUrl && conf.EJS_roomId) {
+                // Fallback: netplay info came inside ejsConf directly
+                window.EJS_netplayUrl = conf.EJS_netplayUrl;
+                window.EJS_room       = conf.EJS_roomId;
+                if (conf.EJS_playerName) {
+                    window.EJS_defaultOptions = window.EJS_defaultOptions || {};
+                    window.EJS_defaultOptions['netplay-nickname'] = conf.EJS_playerName;
                 }
             }
 
-            // ── Load EmulatorJS loader (must come after all EJS_* vars are set) ─
-            const script  = document.createElement('script');
-            script.src    = 'https://cdn.emulatorjs.org/latest/data/loader.js';
-            script.onload = () => console.log('[EmulatorJS] Loader script loaded successfully');
-            script.onerror = () => console.error('[EmulatorJS] Failed to load loader script — check CDN or network.');
+            // ── 7. Log the final config for debugging ─────────────────────────
+            console.log('[EJS] Launching with config:', {
+                core:    window.EJS_core,
+                system:  window.EJS_system,
+                game:    window.EJS_gameName,
+                gameUrl: window.EJS_gameUrl,
+                biosUrl: window.EJS_biosUrl || '(none)',
+                netplay: window.EJS_netplayUrl ? `${window.EJS_netplayUrl} / ${window.EJS_room}` : '(none)',
+            });
+
+            // ── 8. Append loader.js — must be LAST, after all EJS_* are set ──
+            const script    = document.createElement('script');
+            script.src      = pathToData + 'loader.js';
+            script.onload   = () => {
+                console.log('[EJS] loader.js loaded — emulator starting.');
+                hideLoadingScreen();
+            };
+            script.onerror  = () => {
+                showError(
+                    `Failed to load EmulatorJS from: ${pathToData}loader.js. ` +
+                    `Check your network connection or EJS_pathtodata setting.`,
+                    biosUrl
+                );
+            };
             document.head.appendChild(script);
+        }
+
+        // ── Message listener ──────────────────────────────────────────────────
+        window.addEventListener('message', (event) => {
+            const data = event.data;
+            if (!data || data.type !== 'INIT_GAME') return;
+            applyAndLaunch(data);
         });
 
-        // Signal to the parent React app that this iframe is ready to receive messages
+        // ── Tell the parent React app this iframe is ready ────────────────────
+        // The parent waits for this before sending INIT_GAME, so the order is:
+        //   iframe loads → posts IFRAME_READY → parent receives it → sets
+        //   isReady = true → useEffect fires → postMessage(INIT_GAME) is sent.
         window.parent.postMessage({ type: 'IFRAME_READY' }, '*');
+    })();
     </script>
 </body>
 </html>
