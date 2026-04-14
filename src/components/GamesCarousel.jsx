@@ -92,50 +92,250 @@ const useMultiplayer = (onGuestLaunch) => {
 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
 const GamesCarousel = () => {
+  //
+  // Each console entry carries ALL the metadata needed to launch a game correctly:
+  //
+  //   core              – EmulatorJS / RetroArch core identifier sent in INIT_GAME.
+  //   system            – EJS "system" string passed as EJS_conf.system so the
+  //                       emulator never has to auto-detect from the file extension.
+  //   biosUrl           – Optional path to a required BIOS image.  When set it is
+  //                       forwarded to the emulator as EJS_conf.EJS_biosUrl so the
+  //                       core can find it without any auto-detection.
+  //   detectionPriority – Tiebreaker used by getConsoleByExtension() when two
+  //                       consoles share an ambiguous extension (e.g. .bin, .iso,
+  //                       .chd, .cue).  Higher number = preferred.  Consoles whose
+  //                       entire extension list is generic (zip/7z only) should be
+  //                       0.  Consoles with many unique native extensions should be
+  //                       high (10+).  CD-based consoles that own SOME unique exts
+  //                       (mdf, cdi, gdi, …) sit in the middle.
+  //
   const allConsoles = [
-    // Nintendo
-    { id: "nes",       name: "Nintendo (NES)",         icon: "fas fa-gamepad",     color: "#e4000f", fileExtensions: ['nes','fds','unf','unif','zip','7z'] },
-    { id: "snes",      name: "Super Nintendo",         icon: "fas fa-gamepad",     color: "#ff3366", fileExtensions: ['sfc','smc','fig','swc','bs','st','zip','7z'] },
-    { id: "n64",       name: "Nintendo 64",            icon: "fas fa-gamepad",     color: "#ff9900", fileExtensions: ['z64','v64','n64','ndd','zip','7z'] },
-    { id: "gba",       name: "Game Boy Advance",       icon: "fas fa-gamepad",     color: "#73b7ff", fileExtensions: ['gba','zip','7z'] },
-    { id: "gb",        name: "Game Boy",               icon: "fas fa-gamepad",     color: "#8bac0f", fileExtensions: ['gb','gbc','zip','7z'] },
-    { id: "nds",       name: "Nintendo DS",            icon: "fas fa-gamepad",     color: "#ff66cc", fileExtensions: ['nds','zip'] },
-    { id: "vb",        name: "Virtual Boy",            icon: "fas fa-vr-cardboard",color: "#cc0000", fileExtensions: ['vb','vboy','zip','7z'] },
-    // Sega
-    { id: "segaMD",    name: "Sega Genesis / MegaDrive", icon: "fas fa-gamepad",  color: "#ffcc00", fileExtensions: ['md','gen','smd','bin','zip','7z'] },
-    { id: "segaMS",    name: "Sega Master System",     icon: "fas fa-gamepad",     color: "#1a75ff", fileExtensions: ['sms','zip','7z'] },
-    { id: "segaGG",    name: "Sega Game Gear",         icon: "fas fa-gamepad",     color: "#ff6600", fileExtensions: ['gg','zip','7z'] },
-    { id: "segaCD",    name: "Sega CD / MegaCD",       icon: "fas fa-compact-disc",color: "#ccaa00", fileExtensions: ['chd','cue','iso','bin'] },
-    { id: "sega32x",   name: "Sega 32X",               icon: "fas fa-gamepad",     color: "#ff3300", fileExtensions: ['32x','zip','7z'] },
-    { id: "segaSaturn",name: "Sega Saturn",            icon: "fas fa-compact-disc",color: "#9999ff", fileExtensions: ['chd','cue','iso','bin','mdf'] },
-    { id: "dreamcast", name: "Sega Dreamcast",         icon: "fas fa-gamepad",     color: "#00cc99", fileExtensions: ['cdi','gdi','chd','iso'] },
-    // Sony
-    { id: "psx",       name: "PlayStation 1",          icon: "fas fa-playstation", color: "#9966ff", fileExtensions: ['cue','bin','img','chd','pbp','mdf','toc','cbn','m3u'] },
-    { id: "ps2",       name: "PlayStation 2",          icon: "fas fa-playstation", color: "#0066cc", fileExtensions: ['iso','chd','bin','img','mdf'] },
-    { id: "psp",       name: "PlayStation Portable",   icon: "fas fa-gamepad",     color: "#ff6b3d", fileExtensions: ['iso','cso','pbp','chd'] },
-    // Atari
-    { id: "atari2600", name: "Atari 2600",             icon: "fas fa-gamepad",     color: "#e67300", fileExtensions: ['a26','bin','zip','7z'] },
-    { id: "atari5200", name: "Atari 5200",             icon: "fas fa-gamepad",     color: "#cc5500", fileExtensions: ['a52','bin','zip','7z'] },
-    { id: "atari7800", name: "Atari 7800",             icon: "fas fa-gamepad",     color: "#ff7733", fileExtensions: ['a78','bin','zip','7z'] },
-    { id: "atarilynx", name: "Atari Lynx",             icon: "fas fa-gamepad",     color: "#ff9966", fileExtensions: ['lnx','zip','7z'] },
-    { id: "atariJaguar",name:"Atari Jaguar",           icon: "fas fa-gamepad",     color: "#cc3300", fileExtensions: ['j64','jag','rom','abs','cof','bin','prg','zip','7z'] },
-    // NEC
-    { id: "pce",       name: "PC Engine / TurboGrafx", icon: "fas fa-gamepad",    color: "#ff4499", fileExtensions: ['pce','zip','7z'] },
-    { id: "pcecd",     name: "PC Engine CD",           icon: "fas fa-compact-disc",color: "#cc2266", fileExtensions: ['chd','cue','iso'] },
-    { id: "pcfx",      name: "PC-FX",                  icon: "fas fa-gamepad",     color: "#cc44aa", fileExtensions: ['chd','cue','toc','ccd'] },
-    // SNK
-    { id: "ngp",       name: "Neo Geo Pocket",         icon: "fas fa-gamepad",     color: "#50ff50", fileExtensions: ['ngp','ngc','zip','7z'] },
-    { id: "neogeo",    name: "Neo Geo AES / MVS",      icon: "fas fa-gamepad",     color: "#cc0000", fileExtensions: ['zip','7z'] },
-    // Arcade / MAME
-    { id: "arcade",    name: "Arcade (MAME)",          icon: "fas fa-dice",        color: "#ff4400", fileExtensions: ['zip','7z','chd'] },
-    { id: "fba",       name: "FinalBurn Alpha / Neo",  icon: "fas fa-dice",        color: "#ff6600", fileExtensions: ['zip','7z'] },
-    // Other Handhelds
-    { id: "ws",        name: "WonderSwan",             icon: "fas fa-gamepad",     color: "#33ccff", fileExtensions: ['ws','wsc','zip','7z'] },
-    // Computers / Other
-    { id: "coleco",    name: "ColecoVision",           icon: "fas fa-gamepad",     color: "#ff8800", fileExtensions: ['col','bin','rom','zip','7z'] },
-    { id: "vectrex",   name: "Vectrex",                icon: "fas fa-gamepad",     color: "#66ccff", fileExtensions: ['vec','gam','bin','zip','7z'] },
-    { id: "msx",       name: "MSX / MSX2",            icon: "fas fa-keyboard",    color: "#ccff00", fileExtensions: ['rom','mx1','mx2','col','dsk','cas','zip','7z'] },
-    { id: "doom",      name: "DOOM (PrBoom)",          icon: "fas fa-skull",       color: "#ff0000", fileExtensions: ['wad','iwad','pwad'] },
+    // ── Nintendo ────────────────────────────────────────────────────────────────
+    {
+      id: "nes", name: "Nintendo (NES)", icon: "fas fa-gamepad", color: "#e4000f",
+      core: "nes", system: "nes",
+      fileExtensions: ['nes','fds','unf','unif','zip','7z'],
+      detectionPriority: 10,
+    },
+    {
+      id: "snes", name: "Super Nintendo", icon: "fas fa-gamepad", color: "#ff3366",
+      core: "snes", system: "snes",
+      fileExtensions: ['sfc','smc','fig','swc','bs','st','zip','7z'],
+      detectionPriority: 10,
+    },
+    {
+      id: "n64", name: "Nintendo 64", icon: "fas fa-gamepad", color: "#ff9900",
+      core: "n64", system: "n64",
+      fileExtensions: ['z64','v64','n64','ndd','zip','7z'],
+      detectionPriority: 10,
+    },
+    {
+      id: "gba", name: "Game Boy Advance", icon: "fas fa-gamepad", color: "#73b7ff",
+      core: "gba", system: "gba",
+      fileExtensions: ['gba','zip','7z'],
+      detectionPriority: 10,
+    },
+    {
+      id: "gb", name: "Game Boy", icon: "fas fa-gamepad", color: "#8bac0f",
+      core: "gb", system: "gb",
+      fileExtensions: ['gb','gbc','zip','7z'],
+      detectionPriority: 10,
+    },
+    {
+      id: "nds", name: "Nintendo DS", icon: "fas fa-gamepad", color: "#ff66cc",
+      core: "nds", system: "nds",
+      fileExtensions: ['nds','zip'],
+      detectionPriority: 10,
+    },
+    {
+      id: "vb", name: "Virtual Boy", icon: "fas fa-vr-cardboard", color: "#cc0000",
+      core: "vb", system: "vb",
+      fileExtensions: ['vb','vboy','zip','7z'],
+      detectionPriority: 10,
+    },
+    // ── Sega ────────────────────────────────────────────────────────────────────
+    {
+      id: "segaMD", name: "Sega Genesis / MegaDrive", icon: "fas fa-gamepad", color: "#ffcc00",
+      core: "segaMD", system: "segaMD",
+      // .bin is ambiguous but Genesis has .md/.gen/.smd as unique anchors → priority 8
+      fileExtensions: ['md','gen','smd','bin','zip','7z'],
+      detectionPriority: 8,
+    },
+    {
+      id: "segaMS", name: "Sega Master System", icon: "fas fa-gamepad", color: "#1a75ff",
+      core: "segaMS", system: "segaMS",
+      fileExtensions: ['sms','zip','7z'],
+      detectionPriority: 10,
+    },
+    {
+      id: "segaGG", name: "Sega Game Gear", icon: "fas fa-gamepad", color: "#ff6600",
+      core: "segaGG", system: "segaGG",
+      fileExtensions: ['gg','zip','7z'],
+      detectionPriority: 10,
+    },
+    {
+      id: "segaCD", name: "Sega CD / MegaCD", icon: "fas fa-compact-disc", color: "#ccaa00",
+      core: "segaCD", system: "segaCD",
+      // All exts shared; priority lower than Saturn so Saturn wins on equal score
+      fileExtensions: ['chd','cue','iso','bin'],
+      detectionPriority: 3,
+    },
+    {
+      id: "sega32x", name: "Sega 32X", icon: "fas fa-gamepad", color: "#ff3300",
+      core: "sega32x", system: "sega32x",
+      fileExtensions: ['32x','zip','7z'],
+      detectionPriority: 10,
+    },
+    {
+      // SATURN: core is mednafen_saturn (beetle_saturn alias also accepted by EJS).
+      // .mdf is exclusive to Saturn in this list → specificity score = 1,
+      // plus detectionPriority = 7 beats segaCD (3) and psx (5) on .chd/.cue/.bin.
+      id: "segaSaturn", name: "Sega Saturn", icon: "fas fa-compact-disc", color: "#9999ff",
+      core: "mednafen_saturn", system: "segaSaturn",
+      biosUrl: "/bios/saturn_bios.bin",   // set to your actual BIOS path; ignored if file absent
+      fileExtensions: ['mdf','chd','cue','iso','bin'],
+      detectionPriority: 7,
+    },
+    {
+      id: "dreamcast", name: "Sega Dreamcast", icon: "fas fa-gamepad", color: "#00cc99",
+      core: "dreamcast", system: "dreamcast",
+      // .cdi and .gdi are exclusive to Dreamcast → high specificity
+      fileExtensions: ['cdi','gdi','chd','iso'],
+      detectionPriority: 9,
+    },
+    // ── Sony ────────────────────────────────────────────────────────────────────
+    {
+      id: "psx", name: "PlayStation 1", icon: "fas fa-playstation", color: "#9966ff",
+      core: "psx", system: "psx",
+      // .img, .toc, .cbn, .m3u, .pbp are exclusive → specificity wins over segaCD
+      fileExtensions: ['cue','bin','img','chd','pbp','mdf','toc','cbn','m3u'],
+      detectionPriority: 5,
+    },
+    {
+      id: "ps2", name: "PlayStation 2", icon: "fas fa-playstation", color: "#0066cc",
+      core: "ps2", system: "ps2",
+      fileExtensions: ['iso','chd','bin','img','mdf'],
+      detectionPriority: 4,
+    },
+    {
+      id: "psp", name: "PlayStation Portable", icon: "fas fa-gamepad", color: "#ff6b3d",
+      core: "psp", system: "psp",
+      // .cso is exclusive to PSP
+      fileExtensions: ['iso','cso','pbp','chd'],
+      detectionPriority: 8,
+    },
+    // ── Atari ───────────────────────────────────────────────────────────────────
+    {
+      id: "atari2600", name: "Atari 2600", icon: "fas fa-gamepad", color: "#e67300",
+      core: "atari2600", system: "atari2600",
+      fileExtensions: ['a26','bin','zip','7z'],
+      detectionPriority: 6,
+    },
+    {
+      id: "atari5200", name: "Atari 5200", icon: "fas fa-gamepad", color: "#cc5500",
+      core: "atari5200", system: "atari5200",
+      fileExtensions: ['a52','bin','zip','7z'],
+      detectionPriority: 6,
+    },
+    {
+      id: "atari7800", name: "Atari 7800", icon: "fas fa-gamepad", color: "#ff7733",
+      core: "atari7800", system: "atari7800",
+      fileExtensions: ['a78','bin','zip','7z'],
+      detectionPriority: 6,
+    },
+    {
+      id: "atarilynx", name: "Atari Lynx", icon: "fas fa-gamepad", color: "#ff9966",
+      core: "atarilynx", system: "atarilynx",
+      fileExtensions: ['lnx','zip','7z'],
+      detectionPriority: 10,
+    },
+    {
+      id: "atariJaguar", name: "Atari Jaguar", icon: "fas fa-gamepad", color: "#cc3300",
+      core: "atariJaguar", system: "atariJaguar",
+      fileExtensions: ['j64','jag','rom','abs','cof','bin','prg','zip','7z'],
+      detectionPriority: 5,
+    },
+    // ── NEC ─────────────────────────────────────────────────────────────────────
+    {
+      id: "pce", name: "PC Engine / TurboGrafx", icon: "fas fa-gamepad", color: "#ff4499",
+      core: "pce", system: "pce",
+      fileExtensions: ['pce','zip','7z'],
+      detectionPriority: 10,
+    },
+    {
+      id: "pcecd", name: "PC Engine CD", icon: "fas fa-compact-disc", color: "#cc2266",
+      core: "pcecd", system: "pcecd",
+      fileExtensions: ['chd','cue','iso'],
+      detectionPriority: 2,
+    },
+    {
+      id: "pcfx", name: "PC-FX", icon: "fas fa-gamepad", color: "#cc44aa",
+      core: "pcfx", system: "pcfx",
+      // .toc and .ccd are exclusive to PC-FX in this list
+      fileExtensions: ['chd','cue','toc','ccd'],
+      detectionPriority: 9,
+    },
+    // ── SNK ─────────────────────────────────────────────────────────────────────
+    {
+      id: "ngp", name: "Neo Geo Pocket", icon: "fas fa-gamepad", color: "#50ff50",
+      core: "ngp", system: "ngp",
+      fileExtensions: ['ngp','ngc','zip','7z'],
+      detectionPriority: 10,
+    },
+    {
+      id: "neogeo", name: "Neo Geo AES / MVS", icon: "fas fa-gamepad", color: "#cc0000",
+      core: "neogeo", system: "neogeo",
+      fileExtensions: ['zip','7z'],
+      detectionPriority: 0,   // all-ambiguous; needs subfolder convention to detect
+    },
+    // ── Arcade / MAME ───────────────────────────────────────────────────────────
+    {
+      id: "arcade", name: "Arcade (MAME)", icon: "fas fa-dice", color: "#ff4400",
+      core: "arcade", system: "arcade",
+      fileExtensions: ['zip','7z','chd'],
+      detectionPriority: 0,   // all-ambiguous
+    },
+    {
+      id: "fba", name: "FinalBurn Alpha / Neo", icon: "fas fa-dice", color: "#ff6600",
+      core: "fba", system: "fba",
+      fileExtensions: ['zip','7z'],
+      detectionPriority: 0,   // all-ambiguous
+    },
+    // ── Other Handhelds ─────────────────────────────────────────────────────────
+    {
+      id: "ws", name: "WonderSwan", icon: "fas fa-gamepad", color: "#33ccff",
+      core: "ws", system: "ws",
+      fileExtensions: ['ws','wsc','zip','7z'],
+      detectionPriority: 10,
+    },
+    // ── Computers / Other ───────────────────────────────────────────────────────
+    {
+      id: "coleco", name: "ColecoVision", icon: "fas fa-gamepad", color: "#ff8800",
+      core: "coleco", system: "coleco",
+      fileExtensions: ['col','bin','rom','zip','7z'],
+      detectionPriority: 4,
+    },
+    {
+      id: "vectrex", name: "Vectrex", icon: "fas fa-gamepad", color: "#66ccff",
+      core: "vectrex", system: "vectrex",
+      // .vec and .gam are exclusive
+      fileExtensions: ['vec','gam','bin','zip','7z'],
+      detectionPriority: 8,
+    },
+    {
+      id: "msx", name: "MSX / MSX2", icon: "fas fa-keyboard", color: "#ccff00",
+      core: "msx", system: "msx",
+      // .mx1, .mx2, .dsk, .cas are exclusive
+      fileExtensions: ['rom','mx1','mx2','col','dsk','cas','zip','7z'],
+      detectionPriority: 8,
+    },
+    {
+      id: "doom", name: "DOOM (PrBoom)", icon: "fas fa-skull", color: "#ff0000",
+      core: "doom", system: "doom",
+      // All exts are exclusive
+      fileExtensions: ['wad','iwad','pwad'],
+      detectionPriority: 10,
+    },
   ];
 
   const [consoles, setConsoles]                   = useState([]);
@@ -150,8 +350,10 @@ const GamesCarousel = () => {
   const gameFilesRef = useRef({});
   const fileInputRef = useRef(null);
 
-  // Guest auto-launch handler: validates ROM is loaded locally, then launches
-  const handleGuestLaunch = ({ fileName, core: broadcastCore, gameName, platform, roomId, netplayUrl }) => {
+  // Guest auto-launch handler: validates ROM is loaded locally, then launches.
+  // The host already broadcasts consoleId and core, so we trust those values
+  // and never re-derive them from the file extension on the guest side.
+  const handleGuestLaunch = ({ fileName, consoleId: broadcastConsoleId, core: broadcastCore, gameName, platform, roomId, netplayUrl }) => {
     const fileObject = gameFilesRef.current[fileName];
     if (!fileObject) {
       alert(
@@ -160,16 +362,16 @@ const GamesCarousel = () => {
       );
       return;
     }
-    // Use the platform name broadcast by the host as a tiebreaker for ambiguous extensions
-    const consoleInfo = getConsoleByExtensionAndPlatform(fileName, platform);
-    const resolvedCore = consoleInfo
-      ? getEmulatorCoreForConsole(fileName, consoleInfo.id)
-      : (broadcastCore || 'nes');
+    // Prefer the consoleId the host already resolved; fall back to extension scan
+    const consoleInfo =
+      allConsoles.find(c => c.id === broadcastConsoleId) ||
+      allConsoles.find(c => c.id === getConsoleByExtension(fileName)) ||
+      { name: platform, icon: 'fas fa-gamepad', color: '#fff', core: broadcastCore, system: '' };
+
     setCurrentGameForEmulator({
       game: { name: gameName, fileName, fileObject },
-      consoleInfo: consoleInfo || { name: platform, icon: 'fas fa-gamepad', color: '#fff' },
+      consoleInfo,
       netplay: { netplayUrl, roomId, role: 'guest', nickname: mp.nickname },
-      resolvedCore,
     });
     setShowEmulator(true);
   };
@@ -178,65 +380,59 @@ const GamesCarousel = () => {
 
   // ── File handling ────────────────────────────────────────────────────────────
 
-  // Pre-compute which extensions are shared across >1 console (ambiguous).
-  // Built once from allConsoles so every call below is O(1) lookup.
+  // Pre-compute which extensions are shared by more than one console ("ambiguous").
+  // This is a module-level constant so it is built once, not on every keystroke.
   const ambiguousExtensions = (() => {
     const counts = {};
     for (const c of allConsoles)
       for (const ext of c.fileExtensions)
         counts[ext] = (counts[ext] || 0) + 1;
-    return new Set(Object.keys(counts).filter(ext => counts[ext] > 1));
+    return new Set(Object.keys(counts).filter(e => counts[e] > 1));
   })();
 
   /**
-   * Returns the best console id for a given filename.
+   * Three-tier console detection — never "greedy-first":
    *
-   * Strategy (highest-priority first):
-   *  1. If the file extension is UNIQUE to exactly one console → return that console immediately.
-   *  2. If the extension is ambiguous (shared), score every matching console by how many
-   *     of its OWN extensions are *exclusive* (not shared). A console that owns unique
-   *     extensions is more "specific" and wins over a catch-all console like NES or arcade
-   *     whose entire list is zip/7z.
-   *  3. Ties broken by array order (so NES/arcade stay last, not first).
+   * Tier 1  Exclusive extension  →  instant, unambiguous match.
+   *         e.g. ".mdf" only exists on segaSaturn → returns segaSaturn immediately.
+   *
+   * Tier 2  Specificity score    →  among all consoles that accept this extension,
+   *         count how many of each console's OWN extensions are exclusive (not shared).
+   *         The console with the highest count wins.
+   *         e.g. for ".bin": segaSaturn score = 1 (.mdf), psx score = 5 (.img .toc
+   *         .cbn .m3u .pbp), segaCD score = 0  →  psx wins on ".bin" alone.
+   *
+   * Tier 3  detectionPriority   →  explicit tiebreaker for consoles that end up with
+   *         the same specificity score.  Set per-console in allConsoles above.
+   *         Higher number = preferred.
+   *
+   * IMPORTANT: when the user is already browsing a specific console and clicks a game,
+   * launchEmulator() uses currentConsole.id directly — this function is only called
+   * during the initial folder scan, where we have NO console context yet.
    */
   const getConsoleByExtension = (filename) => {
     const ext = filename.toLowerCase().split('.').pop();
 
-    // Fast path — unambiguous extension
+    // Tier 1 – unambiguous extension: only one console owns it
     if (!ambiguousExtensions.has(ext)) {
       const match = allConsoles.find(c => c.fileExtensions.includes(ext));
       return match ? match.id : null;
     }
 
-    // Ambiguous path — pick the most specific console
+    // Tier 2 + 3 – ambiguous: score every matching console
     const candidates = allConsoles.filter(c => c.fileExtensions.includes(ext));
     if (!candidates.length) return null;
 
-    // Score = number of exclusive (non-shared) extensions this console owns.
-    // A console like NES whose list is [nes, fds, unf, unif, zip, 7z] scores 4 (the native
-    // ones). A catch-all like neogeo whose list is [zip, 7z] scores 0.
-    let best = null, bestScore = -1;
+    let best = null, bestSpec = -1, bestPri = -1;
     for (const c of candidates) {
-      const score = c.fileExtensions.filter(e => !ambiguousExtensions.has(e)).length;
-      if (score > bestScore) { bestScore = score; best = c; }
+      // Specificity = number of this console's extensions that are exclusive to it
+      const spec = c.fileExtensions.filter(e => !ambiguousExtensions.has(e)).length;
+      const pri  = c.detectionPriority ?? 0;
+      if (spec > bestSpec || (spec === bestSpec && pri > bestPri)) {
+        bestSpec = spec; bestPri = pri; best = c;
+      }
     }
     return best ? best.id : null;
-  };
-
-  /**
-   * Variant used by handleGuestLaunch: same logic, but when the score is still tied
-   * we fall back to the platform name broadcast by the host, which is authoritative.
-   */
-  const getConsoleByExtensionAndPlatform = (filename, platformName) => {
-    const ext = filename.toLowerCase().split('.').pop();
-    // Try an exact platform-name match first (host already knows the console)
-    const byName = allConsoles.find(
-      c => c.name.toLowerCase() === platformName?.toLowerCase() && c.fileExtensions.includes(ext)
-    );
-    if (byName) return byName;
-    // Fall back to the scored heuristic
-    const id = getConsoleByExtension(filename);
-    return allConsoles.find(c => c.id === id) || null;
   };
 
   const handleFolderSelect = async (event) => {
@@ -293,17 +489,15 @@ const GamesCarousel = () => {
       if (!window.confirm(`Large file (${game.fileSize}). Emulation may be slow. Continue?`)) return;
     }
 
-    // ROM validation for multiplayer guest (shouldn't reach here, but belt & suspenders)
-    // Host: broadcast the launch to guests
-    const core = getEmulatorCoreForConsole(game.fileName, currentConsole.id);
+    const core = currentConsole.core || getEmulatorCoreForConsole(game.fileName, currentConsole.id);
     if (mp.role === 'host' && mp.roomId) {
-      // Validate guest will have this ROM – we can only hint; actual check is on the guest side
       mp.broadcastLaunch({
-        fileName: game.fileName,
+        fileName:  game.fileName,
+        consoleId: currentConsole.id,   // ← guest uses this; no extension guessing needed
         core,
-        gameName: game.name,
-        platform: currentConsole.name,
-        roomId: mp.roomId,
+        gameName:  game.name,
+        platform:  currentConsole.name,
+        roomId:    mp.roomId,
         netplayUrl: SIGNALING_SERVER_URL,
       });
     }
@@ -320,66 +514,44 @@ const GamesCarousel = () => {
     setShowEmulator(true);
   };
 
-  const getEmulatorCore = (fileName) => {
+  /**
+   * getEmulatorCoreForConsole
+   *
+   * Primary source of truth: reads the `core` field directly off the console object
+   * in allConsoles.  This means the core for segaSaturn is always "mednafen_saturn"
+   * regardless of the file extension (.bin/.cue/.chd/…).
+   *
+   * The old extension-based getEmulatorCore() lookup is kept only as a last-resort
+   * fallback for edge cases where consoleId is unknown (should not happen in normal
+   * flow after the refactor above, but kept for safety).
+   */
+  const getEmulatorCoreForConsole = (fileName, consoleId) => {
+    // Fast path: consoleId matches an entry in allConsoles that has a core defined
+    const consoleDef = allConsoles.find(c => c.id === consoleId);
+    if (consoleDef?.core) return consoleDef.core;
+
+    // Fallback: derive from extension alone (only for unknown/missing consoleId)
     if (!fileName) return 'nes';
     const ext = fileName.toLowerCase().split('.').pop();
-    const coreMap = {
-      // Nintendo
+    const extFallbackMap = {
       'nes':'nes','fds':'nes','unf':'nes','unif':'nes',
       'sfc':'snes','smc':'snes','fig':'snes','swc':'snes','bs':'snes','st':'snes',
       'z64':'n64','v64':'n64','n64':'n64','ndd':'n64',
-      'gba':'gba',
-      'gb':'gb','gbc':'gb',
-      'nds':'nds',
-      'vb':'vb','vboy':'vb',
-      // Sega
-      'md':'segaMD','gen':'segaMD','smd':'segaMD',
-      'sms':'segaMS',
-      'gg':'segaGG',
-      '32x':'sega32x',
-      'mdf':'psx', // overridden below per context; handled by extension priority
-      'cdi':'dreamcast','gdi':'dreamcast',
-      // Sony
-      'cue':'psx','img':'psx','toc':'psx','cbn':'psx','m3u':'psx','pbp':'psp',
-      'iso':'psx',  // default; PSP ISOs still use 'psp' core — resolved via console detection
-      'cso':'psp',
-      // Atari
-      'a26':'atari2600',
-      'a52':'atari5200',
-      'a78':'atari7800',
-      'lnx':'atarilynx',
-      'j64':'atariJaguar','jag':'atariJaguar',
-      // NEC
-      'pce':'pce',
-      // SNK
-      'ngp':'ngp','ngc':'ngp',
-      'ws':'ws','wsc':'ws',
-      // Computers / Other
-      'col':'coleco',
-      'vec':'vectrex','gam':'vectrex',
+      'gba':'gba','gb':'gb','gbc':'gb','nds':'nds','vb':'vb','vboy':'vb',
+      'md':'segaMD','gen':'segaMD','smd':'segaMD','sms':'segaMS','gg':'segaGG',
+      '32x':'sega32x','cdi':'dreamcast','gdi':'dreamcast',
+      // For truly ambiguous exts the fallback is psx (most common disc format)
+      'cue':'psx','img':'psx','toc':'psx','cbn':'psx','m3u':'psx',
+      'iso':'psx','bin':'psx','mdf':'psx','chd':'psx',
+      'pbp':'psp','cso':'psp',
+      'a26':'atari2600','a52':'atari5200','a78':'atari7800',
+      'lnx':'atarilynx','j64':'atariJaguar','jag':'atariJaguar',
+      'pce':'pce','ngp':'ngp','ngc':'ngp','ws':'ws','wsc':'ws',
+      'col':'coleco','vec':'vectrex','gam':'vectrex',
       'mx1':'msx','mx2':'msx','dsk':'msx','cas':'msx',
       'wad':'doom','iwad':'doom','pwad':'doom',
-      // Generic containers — resolved by console context
-      'chd':'psx','bin':'nes','rom':'coleco','zip':'nes','7z':'nes',
     };
-    return coreMap[ext] || 'nes';
-  };
-
-  // Smarter core resolver: uses the detected console id when available
-  const getEmulatorCoreForConsole = (fileName, consoleId) => {
-    const consoleCoreMap = {
-      'nes':'nes','snes':'snes','n64':'n64','gba':'gba','gb':'gb','nds':'nds','vb':'vb',
-      'segaMD':'segaMD','segaMS':'segaMS','segaGG':'segaGG','segaCD':'segaCD',
-      'sega32x':'sega32x','segaSaturn':'segaSaturn','dreamcast':'dreamcast',
-      'psx':'psx','ps2':'ps2','psp':'psp',
-      'atari2600':'atari2600','atari5200':'atari5200','atari7800':'atari7800',
-      'atarilynx':'atarilynx','atariJaguar':'atariJaguar',
-      'pce':'pce','pcecd':'pcecd','pcfx':'pcfx',
-      'ngp':'ngp','neogeo':'neogeo',
-      'arcade':'arcade','fba':'fba',
-      'ws':'ws','coleco':'coleco','vectrex':'vectrex','msx':'msx','doom':'doom',
-    };
-    return consoleCoreMap[consoleId] || getEmulatorCore(fileName);
+    return extFallbackMap[ext] || 'nes';
   };
 
   const handleGameClick = (game) => launchEmulator(game);
@@ -433,42 +605,95 @@ const GamesCarousel = () => {
     const game        = currentGameForEmulator?.game;
     const consoleInfo = currentGameForEmulator?.consoleInfo;
     const netplay     = currentGameForEmulator?.netplay;
-    // resolvedCore is pre-computed on the guest path (handleGuestLaunch) where
-    // consoleInfo may only be a fallback object without a valid .id.
-    // On the host path it is always undefined, so we derive it here instead.
-    const resolvedCore = currentGameForEmulator?.resolvedCore;
 
     useEffect(() => {
       if (!isReady || !iframeRef.current || !game?.fileObject) return;
+
       const gameUrl = URL.createObjectURL(game.fileObject);
-      // Use the pre-resolved core when available (guest), otherwise derive from
-      // the confirmed consoleInfo.id (host). Never fall back to the old
-      // getEmulatorCore() which hard-codes zip/bin/chd to 'nes'.
-      const core = resolvedCore ?? getEmulatorCoreForConsole(game.fileName, consoleInfo?.id);
+
+      // ── Core and system are taken EXCLUSIVELY from consoleInfo. ──────────────
+      // We never let the emulator auto-detect these from the file extension because
+      // formats like .bin/.cue/.chd/.iso are shared by a dozen platforms and the
+      // emulator would make wrong guesses (e.g. loading PCSX for a Saturn disc).
+      //
+      // consoleInfo.core   → the RetroArch core name  (e.g. "mednafen_saturn")
+      // consoleInfo.system → the EJS system string     (e.g. "segaSaturn")
+      //
+      // If for some reason consoleInfo lacks a core (fallback object from guest
+      // path), we derive it from the filename as a last resort — still better
+      // than letting EJS auto-detect.
+      const core   = consoleInfo?.core   || getEmulatorCoreForConsole(game.fileName, consoleInfo?.id);
+      const system = consoleInfo?.system || consoleInfo?.id || '';
+
+      // ── Build the strict EJS_conf object ─────────────────────────────────────
+      // Setting EJS_core and EJS_system explicitly prevents EmulatorJS from
+      // running its own extension→core heuristic.
+      const ejsConf = {
+        EJS_gameUrl:    gameUrl,
+        EJS_gameName:   game.name,
+        EJS_core:       core,           // ← explicit, never auto-detected
+        EJS_system:     system,         // ← explicit, never auto-detected
+        EJS_pathtodata: '/emulatorjs/', // adjust to your actual EJS data path
+        EJS_startOnLoaded: true,
+      };
+
+      // ── BIOS injection ───────────────────────────────────────────────────────
+      // If the console definition declares a biosUrl (e.g. Saturn, Sega CD,
+      // PC-FX…), forward it so the core can find the required firmware.
+      // The emulator will still boot without it but will typically show an error
+      // or use a HLE BIOS.  Users should supply the real file at the declared path.
+      if (consoleInfo?.biosUrl) {
+        ejsConf.EJS_biosUrl = consoleInfo.biosUrl;
+      }
+
       setTimeout(() => {
-        if (iframeRef.current) {
-          const message = {
-            type:     'INIT_GAME',
-            core,
-            gameUrl,
-            gameName: game.name,
-            platform: consoleInfo?.name || 'Unknown',
+        if (!iframeRef.current) return;
+
+        // ── postMessage to emulator.html ─────────────────────────────────────
+        // We send both:
+        //   • INIT_GAME  – our own protocol used by emulator.html to bootstrap EJS
+        //   • EJS_CONF   – the raw EJS_conf object so emulator.html can pass it
+        //                  directly to EmulatorJS without modification
+        //
+        // Your emulator.html should listen for INIT_GAME and apply EJS_conf
+        // BEFORE calling EJS_init() / new EJS().  Example handler in emulator.html:
+        //
+        //   window.addEventListener('message', ({ data }) => {
+        //     if (data.type === 'INIT_GAME') {
+        //       Object.assign(window, data.ejsConf);   // sets EJS_gameUrl etc.
+        //       startEmulator();                        // then call your EJS init
+        //     }
+        //   });
+        const message = {
+          type:    'INIT_GAME',
+          // Legacy flat fields kept for backwards compat with older emulator.html
+          core,
+          system,
+          gameUrl,
+          gameName: game.name,
+          platform: consoleInfo?.name || 'Unknown',
+          // New: the complete EJS_conf object — emulator.html should prefer this
+          ejsConf,
+        };
+
+        if (netplay?.netplayUrl && netplay?.roomId && netplay?.nickname) {
+          message.netplay = {
+            netplayUrl: netplay.netplayUrl.replace(/^http(s?):\/\//, 'ws$1://'),
+            roomId:     String(netplay.roomId),
+            nickname:   String(netplay.nickname),
+            role:       netplay.role,
           };
-
-          if (netplay && netplay.netplayUrl && netplay.roomId && netplay.nickname) {
-            message.netplay = {
-              netplayUrl: netplay.netplayUrl.replace(/^http(s?):\/\//, 'ws$1://'),
-              roomId:     String(netplay.roomId),
-              nickname:   String(netplay.nickname),
-              role:       netplay.role,
-            };
-          }
-
-          iframeRef.current.contentWindow.postMessage(message, '*');
+          // Also inject netplay settings into EJS_conf
+          ejsConf.EJS_netplayUrl  = message.netplay.netplayUrl;
+          ejsConf.EJS_roomId      = message.netplay.roomId;
+          ejsConf.EJS_playerName  = message.netplay.nickname;
         }
+
+        iframeRef.current.contentWindow.postMessage(message, '*');
       }, 500);
+
       return () => URL.revokeObjectURL(gameUrl);
-    }, [isReady, game, consoleInfo, netplay, resolvedCore]);
+    }, [isReady, game, consoleInfo, netplay]);
 
     if (!showEmulator || !currentGameForEmulator) return null;
 
