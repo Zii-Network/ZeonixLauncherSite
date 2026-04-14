@@ -151,7 +151,7 @@ const GamesCarousel = () => {
   const fileInputRef = useRef(null);
 
   // Guest auto-launch handler: validates ROM is loaded locally, then launches
-  const handleGuestLaunch = ({ fileName, core, gameName, platform, roomId, netplayUrl }) => {
+  const handleGuestLaunch = ({ fileName, core: broadcastCore, gameName, platform, roomId, netplayUrl }) => {
     const fileObject = gameFilesRef.current[fileName];
     if (!fileObject) {
       alert(
@@ -160,11 +160,16 @@ const GamesCarousel = () => {
       );
       return;
     }
-    const consoleInfo = allConsoles.find(c => c.fileExtensions.includes(fileName.split('.').pop().toLowerCase()));
+    // Use the platform name broadcast by the host as a tiebreaker for ambiguous extensions
+    const consoleInfo = getConsoleByExtensionAndPlatform(fileName, platform);
+    const resolvedCore = consoleInfo
+      ? getEmulatorCoreForConsole(fileName, consoleInfo.id)
+      : (broadcastCore || 'nes');
     setCurrentGameForEmulator({
       game: { name: gameName, fileName, fileObject },
       consoleInfo: consoleInfo || { name: platform, icon: 'fas fa-gamepad', color: '#fff' },
       netplay: { netplayUrl, roomId, role: 'guest', nickname: mp.nickname },
+      resolvedCore,
     });
     setShowEmulator(true);
   };
@@ -172,12 +177,66 @@ const GamesCarousel = () => {
   const mp = useMultiplayer(handleGuestLaunch);
 
   // ── File handling ────────────────────────────────────────────────────────────
+
+  // Pre-compute which extensions are shared across >1 console (ambiguous).
+  // Built once from allConsoles so every call below is O(1) lookup.
+  const ambiguousExtensions = (() => {
+    const counts = {};
+    for (const c of allConsoles)
+      for (const ext of c.fileExtensions)
+        counts[ext] = (counts[ext] || 0) + 1;
+    return new Set(Object.keys(counts).filter(ext => counts[ext] > 1));
+  })();
+
+  /**
+   * Returns the best console id for a given filename.
+   *
+   * Strategy (highest-priority first):
+   *  1. If the file extension is UNIQUE to exactly one console → return that console immediately.
+   *  2. If the extension is ambiguous (shared), score every matching console by how many
+   *     of its OWN extensions are *exclusive* (not shared). A console that owns unique
+   *     extensions is more "specific" and wins over a catch-all console like NES or arcade
+   *     whose entire list is zip/7z.
+   *  3. Ties broken by array order (so NES/arcade stay last, not first).
+   */
   const getConsoleByExtension = (filename) => {
     const ext = filename.toLowerCase().split('.').pop();
-    for (const c of allConsoles) {
-      if (c.fileExtensions.includes(ext)) return c.id;
+
+    // Fast path — unambiguous extension
+    if (!ambiguousExtensions.has(ext)) {
+      const match = allConsoles.find(c => c.fileExtensions.includes(ext));
+      return match ? match.id : null;
     }
-    return null;
+
+    // Ambiguous path — pick the most specific console
+    const candidates = allConsoles.filter(c => c.fileExtensions.includes(ext));
+    if (!candidates.length) return null;
+
+    // Score = number of exclusive (non-shared) extensions this console owns.
+    // A console like NES whose list is [nes, fds, unf, unif, zip, 7z] scores 4 (the native
+    // ones). A catch-all like neogeo whose list is [zip, 7z] scores 0.
+    let best = null, bestScore = -1;
+    for (const c of candidates) {
+      const score = c.fileExtensions.filter(e => !ambiguousExtensions.has(e)).length;
+      if (score > bestScore) { bestScore = score; best = c; }
+    }
+    return best ? best.id : null;
+  };
+
+  /**
+   * Variant used by handleGuestLaunch: same logic, but when the score is still tied
+   * we fall back to the platform name broadcast by the host, which is authoritative.
+   */
+  const getConsoleByExtensionAndPlatform = (filename, platformName) => {
+    const ext = filename.toLowerCase().split('.').pop();
+    // Try an exact platform-name match first (host already knows the console)
+    const byName = allConsoles.find(
+      c => c.name.toLowerCase() === platformName?.toLowerCase() && c.fileExtensions.includes(ext)
+    );
+    if (byName) return byName;
+    // Fall back to the scored heuristic
+    const id = getConsoleByExtension(filename);
+    return allConsoles.find(c => c.id === id) || null;
   };
 
   const handleFolderSelect = async (event) => {
@@ -374,14 +433,20 @@ const GamesCarousel = () => {
     const game        = currentGameForEmulator?.game;
     const consoleInfo = currentGameForEmulator?.consoleInfo;
     const netplay     = currentGameForEmulator?.netplay;
+    // resolvedCore is pre-computed on the guest path (handleGuestLaunch) where
+    // consoleInfo may only be a fallback object without a valid .id.
+    // On the host path it is always undefined, so we derive it here instead.
+    const resolvedCore = currentGameForEmulator?.resolvedCore;
 
     useEffect(() => {
       if (!isReady || !iframeRef.current || !game?.fileObject) return;
       const gameUrl = URL.createObjectURL(game.fileObject);
-      const core    = getEmulatorCore(game.fileName);
+      // Use the pre-resolved core when available (guest), otherwise derive from
+      // the confirmed consoleInfo.id (host). Never fall back to the old
+      // getEmulatorCore() which hard-codes zip/bin/chd to 'nes'.
+      const core = resolvedCore ?? getEmulatorCoreForConsole(game.fileName, consoleInfo?.id);
       setTimeout(() => {
         if (iframeRef.current) {
-          // Build the base message
           const message = {
             type:     'INIT_GAME',
             core,
@@ -390,14 +455,12 @@ const GamesCarousel = () => {
             platform: consoleInfo?.name || 'Unknown',
           };
 
-          // Attach netplay only when all required fields are present
           if (netplay && netplay.netplayUrl && netplay.roomId && netplay.nickname) {
             message.netplay = {
-              // Convert http(s):// → ws(s):// so emulator.html receives a ready-to-use WS URL
               netplayUrl: netplay.netplayUrl.replace(/^http(s?):\/\//, 'ws$1://'),
               roomId:     String(netplay.roomId),
               nickname:   String(netplay.nickname),
-              role:       netplay.role, // 'host' | 'guest'
+              role:       netplay.role,
             };
           }
 
@@ -405,7 +468,7 @@ const GamesCarousel = () => {
         }
       }, 500);
       return () => URL.revokeObjectURL(gameUrl);
-    }, [isReady, game, consoleInfo, netplay]);
+    }, [isReady, game, consoleInfo, netplay, resolvedCore]);
 
     if (!showEmulator || !currentGameForEmulator) return null;
 
