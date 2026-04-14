@@ -598,7 +598,7 @@ const GamesCarousel = () => {
                 <div className="format-category"><h4>Sega Game Gear</h4><div className="format-list">.gg .zip</div></div>
                 <div className="format-category"><h4>Sega CD / MegaCD</h4><div className="format-list">.chd .cue .iso .bin</div></div>
                 <div className="format-category"><h4>Sega 32X</h4><div className="format-list">.32x .zip</div></div>
-                <div className="format-category"><h4>Sega Saturn</h4><div className="format-list">.chd .cue .iso .mdf</div></div>
+                <div className="format-category"><h4>Sega Saturn</h4><div className="format-list">.chd .cue .iso .mdf .zip</div></div>
                 <div className="format-category"><h4>Sega Dreamcast</h4><div className="format-list">.cdi .gdi .chd .iso</div></div>
                 <div className="format-category"><h4>PlayStation 1</h4><div className="format-list">.cue .bin .img .chd .pbp .m3u</div></div>
                 <div className="format-category"><h4>PlayStation 2</h4><div className="format-list">.iso .chd .bin .img</div></div>
